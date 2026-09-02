@@ -1,0 +1,190 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* Clinical Vigilance Colors */
+    --surface: #f8f9fc;
+    --surface-dim: #d8dadd;
+    --surface-bright: #f8f9fc;
+    --surface-container-lowest: #ffffff;
+    --surface-container-low: #f2f4f6;
+    --surface-container: #eceef0;
+    --surface-container-high: #e7e8eb;
+    --surface-container-highest: #e1e2e5;
+    --on-surface: #191c1e;
+    --on-surface-variant: #424752;
+    --inverse-surface: #2e3133;
+    --inverse-on-surface: #eff1f3;
+    --outline: #737784;
+    --outline-variant: #c2c6d5;
+    --surface-tint: #175bbd;
+    --primary: #003c87;
+    --on-primary: #ffffff;
+    --primary-container: #0052b4;
+    --on-primary-container: #b6ccff;
+    --inverse-primary: #aec6ff;
+    --secondary: #755a17;
+    --on-secondary: #ffffff;
+    --secondary-container: #fed889;
+    --on-secondary-container: #785d1a;
+    --tertiary: #850001;
+    --on-tertiary: #ffffff;
+    --tertiary-container: #b10002;
+    --on-tertiary-container: #ffbcb1;
+    --error: #ba1a1a;
+    --on-error: #ffffff;
+    --error-container: #ffdad6;
+    --on-error-container: #93000a;
+    --primary-fixed: #d8e2ff;
+    --primary-fixed-dim: #aec6ff;
+    --on-primary-fixed: #001a42;
+    --on-primary-fixed-variant: #004396;
+    --secondary-fixed: #ffdf9d;
+    --secondary-fixed-dim: #e6c275;
+    --on-secondary-fixed: #251a00;
+    --on-secondary-fixed-variant: #5b4300;
+    --tertiary-fixed: #ffdad4;
+    --tertiary-fixed-dim: #ffb4a8;
+    --on-tertiary-fixed: #410000;
+    --on-tertiary-fixed-variant: #930001;
+    --background: #f8f9fc;
+    --on-background: #191c1e;
+    --surface-variant: #e1e2e5;
+    --surface-bg: #f8fafc;
+    --border-subtle: #e2e8f0;
+    --asean-blue: #003396;
+    --asean-gold: #c1a74f;
+    --asean-red: #e60012;
+
+    /* Pill inputs custom surface */
+    --input-surface: #edf4fa;
+    --input-border: #d4e3f0;
+  }
+}
+
+@theme {
+  --color-surface: var(--surface);
+  --color-surface-dim: var(--surface-dim);
+  --color-surface-bright: var(--surface-bright);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-inverse-surface: var(--inverse-surface);
+  --color-inverse-on-surface: var(--inverse-on-surface);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+  --color-surface-tint: var(--surface-tint);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
+  --color-inverse-primary: var(--inverse-primary);
+  --color-secondary: var(--secondary);
+  --color-on-secondary: var(--on-secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary-container: var(--on-secondary-container);
+  --color-tertiary: var(--tertiary);
+  --color-on-tertiary: var(--on-tertiary);
+  --color-tertiary-container: var(--tertiary-container);
+  --color-on-tertiary-container: var(--on-tertiary-container);
+  --color-error: var(--error);
+  --color-on-error: var(--on-error);
+  --color-error-container: var(--error-container);
+  --color-on-error-container: var(--on-error-container);
+  --color-primary-fixed: var(--primary-fixed);
+  --color-primary-fixed-dim: var(--primary-fixed-dim);
+  --color-on-primary-fixed: var(--on-primary-fixed);
+  --color-on-primary-fixed-variant: var(--on-primary-fixed-variant);
+  --color-secondary-fixed: var(--secondary-fixed);
+  --color-secondary-fixed-dim: var(--secondary-fixed-dim);
+  --color-on-secondary-fixed: var(--on-secondary-fixed);
+  --color-on-secondary-fixed-variant: var(--on-secondary-fixed-variant);
+  --color-tertiary-fixed: var(--tertiary-fixed);
+  --color-tertiary-fixed-dim: var(--tertiary-fixed-dim);
+  --color-on-tertiary-fixed: var(--on-tertiary-fixed);
+  --color-on-tertiary-fixed-variant: var(--on-tertiary-fixed-variant);
+  --color-background: var(--background);
+  --color-on-background: var(--on-background);
+  --color-surface-variant: var(--surface-variant);
+  --color-surface-bg: var(--surface-bg);
+  --color-border-subtle: var(--border-subtle);
+  --color-asean-blue: var(--asean-blue);
+  --color-asean-gold: var(--asean-gold);
+  --color-asean-red: var(--asean-red);
+  --color-input-surface: var(--input-surface);
+  --color-input-border: var(--input-border);
+}
+
+body {
+  background-color: #0b1324;
+  color: var(--on-surface);
+  font-family: var(--font-public-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Captcha text pattern distortion */
+.captcha-text {
+  letter-spacing: 0.35em;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 900;
+  text-shadow: 1px 1px 0px rgba(0, 60, 135, 0.4), -1px -1px 0px rgba(117, 90, 23, 0.2);
+}
+
+/* Custom smooth animations */
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(-0.5deg);
+  }
+}
+
+@keyframes airplaneFly {
+  0% {
+    transform: translate(-10px, 6px) rotate(-6deg);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate(4px, -2px) rotate(-5deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(14px, -8px) rotate(-4deg);
+    opacity: 0.95;
+  }
+}
+
+@keyframes pulseSubtle {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.95;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+}
+
+.animate-float-slow {
+  animation: floatSlow 6s ease-in-out infinite;
+}
+
+.animate-airplane {
+  animation: airplaneFly 7s ease-in-out infinite alternate;
+}
+
+.animate-pulse-subtle {
+  animation: pulseSubtle 2.5s ease-in-out infinite;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}

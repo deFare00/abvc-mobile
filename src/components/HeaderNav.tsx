@@ -20,8 +20,8 @@ export default function HeaderNav({
   const [lang, setLang] = useState<"ID" | "EN">("ID");
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-gradient-to-r from-[#003396] via-[#003c87] to-[#0052b4] text-white shadow-md border-b-2 border-[#C1A74F]/40 select-none">
-      <div className="w-full px-4 py-2.5 flex items-center justify-between">
+    <header className="sticky top-0 z-40 w-full bg-gradient-to-r from-[#003396] via-[#003c87] to-[#0052b4] text-white shadow-md border-b-2 border-[#C1A74F]/40 select-none pt-[env(safe-area-inset-top,0px)]">
+      <div className="w-full px-4 py-3 sm:py-2.5 flex items-center justify-between">
         
         {/* Left: Branding & Emblem */}
         <div className="flex items-center gap-2.5">

@@ -139,7 +139,7 @@ export default function App() {
         <div className="w-full h-full flex flex-col overflow-hidden bg-[#f8f9fc] text-[#191c1e]">
           
           {/* 1. Fixed Top Header (Never Scrolls) */}
-          <div className="flex-shrink-0 z-40">
+          <div className="flex-shrink-0 z-40 bg-[#003396]">
             <HeaderNav
               user={user}
               onLogout={handleLogout}
@@ -173,7 +173,7 @@ export default function App() {
           </div>
 
           {/* 3. Fixed Bottom Footer Navigation (Never Scrolls) */}
-          <div className="flex-shrink-0 z-40">
+          <div className="flex-shrink-0 z-40 bg-white">
             <FooterNav
               activeTab={activeTab}
               onTabChange={(tab) => setActiveTab(tab)}
@@ -184,7 +184,7 @@ export default function App() {
         /* ========================================================= */
         /* SCENARIO B: CLEAN LOGIN VIEW (COLORS.MD SURFACE PALETTE)  */
         /* ========================================================= */
-        <div className="relative w-full h-full flex flex-col justify-between bg-[#f8f9fc] text-[#191c1e] px-5 py-6 z-10 overflow-y-auto">
+        <div className="relative w-full h-full flex flex-col justify-between bg-[#f8f9fc] text-[#191c1e] px-5 py-6 z-10 overflow-y-auto pt-[env(safe-area-inset-top,24px)] pb-[env(safe-area-inset-bottom,24px)]">
           
           {/* Subtle Ambient Color Gradients based on COLORS.md */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-gradient-to-b from-[#d8e2ff]/60 via-[#fed889]/15 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />

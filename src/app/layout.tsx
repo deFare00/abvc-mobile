@@ -15,6 +15,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {
@@ -32,7 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className={`${publicSans.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col font-sans bg-slate-900 text-slate-900 selection:bg-blue-100 selection:text-blue-900">
+      <body className="h-full w-full flex flex-col font-sans bg-[#f8f9fc] sm:bg-slate-900 text-slate-900 selection:bg-blue-100 selection:text-blue-900 overflow-x-hidden">
         {children}
       </body>
     </html>

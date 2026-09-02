@@ -20,8 +20,8 @@ export default function FooterNav({ activeTab, onTabChange }: FooterNavProps) {
   ];
 
   return (
-    <nav aria-label="Navigasi Utama" className="sticky bottom-0 z-40 w-full bg-white/95 backdrop-blur-lg border-t border-[#E2E8F0] shadow-lg select-none">
-      <div className="max-w-[430px] mx-auto px-2 py-1.5 flex items-center justify-around relative">
+    <nav aria-label="Navigasi Utama" className="sticky bottom-0 z-40 w-full bg-white border-t border-[#E2E8F0] shadow-lg select-none pb-[env(safe-area-inset-bottom,0px)]">
+      <div className="max-w-[430px] mx-auto px-2 pt-1 pb-1 flex items-center justify-around relative">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;

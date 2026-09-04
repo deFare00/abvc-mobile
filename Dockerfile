@@ -10,7 +10,7 @@ RUN mkdir -p /home/node/.cache /home/node/.npm \
 USER node
 
 COPY --chown=node:node package*.json ./
-RUN npm ci
+RUN --mount=type=cache,id=abvc-mobile-npm,target=/home/node/.npm,uid=1000,gid=1000 npm ci
 
 COPY --chown=node:node . ./
 RUN npm run build

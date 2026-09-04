@@ -14,6 +14,9 @@ deploy_production:
   environment:
     name: production
   script:
+    - test -r /home/nlpdev/docker/abvc-mobile/.env
+    - install -m 600 /home/nlpdev/docker/abvc-mobile/.env .env
+    - trap 'rm -f .env' EXIT
     - docker compose -f docker-compose.yml config --quiet
     - docker compose -f docker-compose.yml build --pull=false
     - docker compose -f docker-compose.yml up -d --force-recreate --remove-orphans

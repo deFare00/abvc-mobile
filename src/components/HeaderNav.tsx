@@ -17,7 +17,7 @@ export default function HeaderNav({
   activeNotificationsCount = 3,
 }: HeaderNavProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [lang, setLang] = useState<"ID" | "EN">("ID");
+  const [lang, setLang] = useState<"ID" | "EN">("EN");
 
   return (
     <header className="sticky top-0 z-40 w-full bg-gradient-to-r from-[#003396] via-[#003c87] to-[#0052b4] text-white shadow-md border-b-2 border-[#C1A74F]/40 select-none pt-[env(safe-area-inset-top,0px)]">
@@ -51,8 +51,8 @@ export default function HeaderNav({
           {/* Language Toggle */}
           <button
             onClick={() => setLang(lang === "ID" ? "EN" : "ID")}
-            className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[10px] font-bold tracking-wider transition-colors"
-            title="Ganti Bahasa"
+            className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[10px] font-bold tracking-wider transition-colors cursor-pointer"
+            title="Language"
           >
             <Globe className="w-3 h-3 text-[#fed889]" />
             <span>{lang}</span>
@@ -60,10 +60,10 @@ export default function HeaderNav({
 
           {/* Notification Indicator */}
           <button
-            onClick={() => alert(`Terdapat ${activeNotificationsCount} peringatan surveilans aktif di kawasan regional ASEAN.`)}
-            className="relative p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-            title="Notifikasi Sinyal Ancaman"
-            aria-label="Pemberitahuan"
+            onClick={() => alert(`There are ${activeNotificationsCount} active surveillance alerts across the ASEAN region.`)}
+            className="relative p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+            title="Threat Signal Notifications"
+            aria-label="Notifications"
           >
             <Bell className="w-4 h-4 text-[#fed889]" />
             {activeNotificationsCount > 0 && (
@@ -78,8 +78,8 @@ export default function HeaderNav({
             <button
               type="button"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-1.5 p-1 pl-1.5 pr-2 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 transition-all focus:outline-none"
-              aria-label="Menu Pengguna"
+              className="flex items-center gap-1.5 p-1 pl-1.5 pr-2 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 transition-all focus:outline-none cursor-pointer"
+              aria-label="User Menu"
             >
               <div className="w-7 h-7 rounded-full bg-[#fed889] text-[#755a17] font-bold text-xs flex items-center justify-center overflow-hidden border border-white shadow-sm">
                 <Image
@@ -109,12 +109,12 @@ export default function HeaderNav({
                   <button
                     onClick={() => {
                       setIsDropdownOpen(false);
-                      alert(`Profil Petugas: ${user.name}\nUnit: ${user.institution}\nWilayah: ${user.assignedRegion}`);
+                      alert(`Surveillance Officer: ${user.name}\nInstitution: ${user.institution}\nRegion: ${user.assignedRegion}`);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-[#424752] hover:bg-[#f8f9fc] hover:text-[#003396] rounded-xl transition-colors text-left"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-[#424752] hover:bg-[#f8f9fc] hover:text-[#003396] rounded-xl transition-colors text-left cursor-pointer"
                   >
                     <User className="w-3.5 h-3.5 text-[#003396]" />
-                    <span>Profil &amp; Otorisasi</span>
+                    <span>Profile &amp; Authorization</span>
                   </button>
                 </div>
 
@@ -124,10 +124,10 @@ export default function HeaderNav({
                       setIsDropdownOpen(false);
                       onLogout();
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-[#E60012] hover:bg-red-50 rounded-xl transition-colors text-left"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-[#E60012] hover:bg-red-50 rounded-xl transition-colors text-left cursor-pointer"
                   >
                     <LogOut className="w-3.5 h-3.5" />
-                    <span>Keluar (Logout)</span>
+                    <span>Sign Out</span>
                   </button>
                 </div>
               </div>

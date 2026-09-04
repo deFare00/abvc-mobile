@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Eye, EyeOff, HelpCircle, Check, Loader2, Sparkles, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, HelpCircle, Check, Loader2, ShieldCheck } from "lucide-react";
 import confetti from "canvas-confetti";
 import MobileContainer from "@/components/MobileContainer";
 import ABVCLogo from "@/components/ABVCLogo";
@@ -13,21 +13,21 @@ import HeaderNav from "@/components/HeaderNav";
 import FooterNav, { NavTab } from "@/components/FooterNav";
 import HomeView from "@/components/views/HomeView";
 import SignalsView from "@/components/views/SignalsView";
-import RiskMatrixView from "@/components/views/RiskMatrixView";
-import HistoryView from "@/components/views/HistoryView";
+import OutbreakLocationView from "@/components/views/OutbreakLocationView";
+import DiseaseOverviewView from "@/components/views/DiseaseOverviewView";
 import MapView from "@/components/views/MapView";
 import NlpAnalyzeModal from "@/components/views/NlpAnalyzeModal";
 import { defaultUser, mockSignals } from "@/data/mockSurveillance";
 import { OutbreakSignal, UserProfile } from "@/types/surveillance";
 
 export default function App() {
-  // Authentication State
+  // Authentication State (Default false to show login page directly)
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<UserProfile>(defaultUser);
 
   // Login Form States
   const [username, setUsername] = useState("officer.asean");
-  const [password, setPassword] = useState("••••••••");
+  const [password, setPassword] = useState("abvc2026");
   const [securityCode, setSecurityCode] = useState("");
   const [currentCaptcha, setCurrentCaptcha] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -36,6 +36,7 @@ export default function App() {
 
   // Navigation & Data States
   const [activeTab, setActiveTab] = useState<NavTab>("home");
+  const [homeSubView, setHomeSubView] = useState<"morbidity" | "mortality" | "phe" | null>(null);
   const [signals, setSignals] = useState<OutbreakSignal[]>(mockSignals);
 
   // Modals & Notifications
@@ -55,22 +56,22 @@ export default function App() {
     e.preventDefault();
 
     if (!username.trim()) {
-      showToast("Harap masukkan Surveillance ID atau NIP Anda.", "warning");
+      showToast("Please enter your Surveillance ID or NIP.", "warning");
       return;
     }
 
     if (!password.trim()) {
-      showToast("Harap masukkan Kata Sandi Otorisasi Anda.", "warning");
+      showToast("Please enter your authorization password.", "warning");
       return;
     }
 
     if (!securityCode.trim()) {
-      showToast("Harap masukkan 5 digit Kode Keamanan (Captcha).", "warning");
+      showToast("Please enter the 5-digit security captcha.", "warning");
       return;
     }
 
     if (securityCode.trim().toUpperCase() !== currentCaptcha.toUpperCase()) {
-      showToast("Kode Keamanan tidak sesuai! Silakan periksa kembali.", "error");
+      showToast("Security code does not match! Please check again.", "error");
       return;
     }
 
@@ -79,7 +80,7 @@ export default function App() {
       setIsLoading(false);
       setIsLoggedIn(true);
       setActiveTab("home");
-      showToast("Otorisasi berhasil! Selamat datang di Beranda ABVC.", "success");
+      showToast("Authorization successful! Welcome to ABVC Surveillance.", "success");
       try {
         confetti({
           particleCount: 75,
@@ -97,19 +98,12 @@ export default function App() {
     setIsLoggedIn(false);
     setSecurityCode("");
     setActiveTab("home");
-    showToast("Anda telah keluar dari sesi portal.", "info");
-  };
-
-  const handleFillDemo = () => {
-    setUsername("officer.asean");
-    setPassword("abvc2026");
-    setSecurityCode(currentCaptcha);
-    showToast("Kredensial demo ABVC berhasil diisikan.", "info");
+    showToast("You have been signed out from the portal session.", "info");
   };
 
   const handleAddSignal = (newSignal: OutbreakSignal) => {
     setSignals([newSignal, ...signals]);
-    showToast(`Sinyal baru ${newSignal.disease} berhasil ditambahkan!`, "success");
+    showToast(`New signal for ${newSignal.disease} successfully added!`, "success");
   };
 
   return (
@@ -137,7 +131,7 @@ export default function App() {
       {/* ========================================================= */}
       {isLoggedIn ? (
         <div className="w-full h-full flex flex-col overflow-hidden bg-[#f8f9fc] text-[#191c1e]">
-          
+
           {/* 1. Fixed Top Header (Never Scrolls) */}
           <div className="flex-shrink-0 z-40 bg-[#003396]">
             <HeaderNav
@@ -155,6 +149,8 @@ export default function App() {
                 signals={signals}
                 onOpenNlpModal={() => setIsNlpModalOpen(true)}
                 onNavigateTab={(tab) => setActiveTab(tab)}
+                activeSubView={homeSubView}
+                onSubViewChange={setHomeSubView}
               />
             )}
 
@@ -165,9 +161,9 @@ export default function App() {
               />
             )}
 
-            {activeTab === "matrix" && <RiskMatrixView />}
+            {activeTab === "matrix" && <OutbreakLocationView />}
 
-            {activeTab === "history" && <HistoryView />}
+            {activeTab === "history" && <DiseaseOverviewView />}
 
             {activeTab === "maps" && <MapView signals={signals} />}
           </div>
@@ -176,32 +172,35 @@ export default function App() {
           <div className="flex-shrink-0 z-40 bg-white">
             <FooterNav
               activeTab={activeTab}
-              onTabChange={(tab) => setActiveTab(tab)}
+              onTabChange={(tab) => {
+                setActiveTab(tab);
+                if (tab === "home") {
+                  setHomeSubView(null);
+                }
+              }}
             />
           </div>
         </div>
       ) : (
         /* ========================================================= */
-        /* SCENARIO B: CLEAN LOGIN VIEW (COLORS.MD SURFACE PALETTE)  */
+        /* SCENARIO B: CLEAN LOGIN VIEW WITH COVER BACKGROUND        */
         /* ========================================================= */
-        <div className="relative w-full h-full flex flex-col justify-between bg-[#f8f9fc] text-[#191c1e] px-5 py-6 z-10 overflow-y-auto pt-[env(safe-area-inset-top,24px)] pb-[env(safe-area-inset-bottom,24px)]">
-          
-          {/* Subtle Ambient Color Gradients based on COLORS.md */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-gradient-to-b from-[#d8e2ff]/60 via-[#fed889]/15 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
-          <div className="absolute bottom-0 right-0 w-72 h-72 bg-gradient-to-tl from-[#eceef0] to-transparent rounded-full blur-2xl pointer-events-none -z-10" />
+        <div className="relative w-full h-full flex flex-col justify-between text-[#191c1e] px-5 py-6 z-10 overflow-y-auto pt-[env(safe-area-inset-top,24px)] pb-[env(safe-area-inset-bottom,24px)]">
 
-          {/* Subtle Institutional Grid Pattern */}
+          {/* Official Cover Background Image */}
           <div
-            className="absolute inset-0 opacity-[0.03] pointer-events-none -z-10"
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat -z-20"
             style={{
-              backgroundImage: `radial-gradient(#003396 1px, transparent 1px)`,
-              backgroundSize: "20px 20px",
+              backgroundImage: "url('/mobile/assets/images/cover_abvc_mobile.jpg')",
             }}
           />
 
+          {/* Elegant White/Translucent Backdrop Filter */}
+          <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] -z-10" />
+
           {/* Top Header & Branding Section */}
           <div className="w-full flex flex-col items-center">
-            
+
             {/* Header Brand Logo (Official ABVC Emblem) */}
             <div className="mt-2 mb-3">
               <ABVCLogo />
@@ -213,15 +212,15 @@ export default function App() {
                 ASEAN Biological Threats<br />
                 Surveillance Centre
               </h1>
-              <p className="text-[10.5px] sm:text-[11px] font-bold tracking-wider text-[#737784] uppercase">
+              <p className="text-[10.5px] sm:text-[11px] font-bold tracking-wider text-[#424752] uppercase">
                 REGIONAL SURVEILLANCE &amp; EARLY WARNING PORTAL
               </p>
             </div>
 
             {/* Login Form Container - Card Surface */}
-            <div className="w-full bg-white rounded-3xl p-5 sm:p-6 border border-[#E2E8F0] shadow-sm max-w-[370px]">
+            <div className="w-full bg-white/95 rounded-3xl p-5 sm:p-6 border border-[#E2E8F0] shadow-xl max-w-[370px] backdrop-blur-md">
               <form onSubmit={handleLogin} className="w-full space-y-3.5">
-                
+
                 {/* Field 1: Username / Surveillance Officer ID */}
                 <div className="space-y-1">
                   <label className="block text-[11px] font-bold text-[#424752] uppercase tracking-wider pl-2">
@@ -232,7 +231,7 @@ export default function App() {
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Masukkan ID Petugas / NIP"
+                      placeholder="Enter Surveillance ID / NIP"
                       autoComplete="username"
                       className="w-full h-11 px-5 rounded-full bg-[#f8f9fc] border border-[#E2E8F0] text-sm text-[#191c1e] font-semibold placeholder:text-[#737784] shadow-inner transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#003396] focus:border-transparent"
                     />
@@ -242,14 +241,14 @@ export default function App() {
                 {/* Field 2: Password with Eye Toggle */}
                 <div className="space-y-1">
                   <label className="block text-[11px] font-bold text-[#424752] uppercase tracking-wider pl-2">
-                    Kata Sandi
+                    Password
                   </label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Masukkan Kata Sandi"
+                      placeholder="Enter Password"
                       autoComplete="current-password"
                       className="w-full h-11 px-5 pr-12 rounded-full bg-[#f8f9fc] border border-[#E2E8F0] text-sm text-[#191c1e] font-semibold placeholder:text-[#737784] tracking-widest focus:tracking-normal shadow-inner transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#003396] focus:border-transparent"
                     />
@@ -257,7 +256,7 @@ export default function App() {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-[#737784] hover:text-[#003396] p-1 transition-colors"
-                      aria-label={showPassword ? "Sembunyikan sandi" : "Tampilkan sandi"}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                     >
                       {showPassword ? (
                         <EyeOff className="w-4 h-4" />
@@ -271,7 +270,7 @@ export default function App() {
                 {/* Field 3 & 4: Captcha Box + Security Code Input Row */}
                 <div className="space-y-1 pt-0.5">
                   <label className="block text-[11px] font-bold text-[#424752] uppercase tracking-wider pl-2">
-                    Verifikasi Keamanan
+                    Security Verification
                   </label>
                   <div className="flex items-center gap-2">
                     {/* Left: Dynamic Captcha Canvas Box */}
@@ -286,7 +285,7 @@ export default function App() {
                         maxLength={6}
                         value={securityCode}
                         onChange={(e) => setSecurityCode(e.target.value.toUpperCase())}
-                        placeholder="KODE CAPTCHA"
+                        placeholder="CAPTCHA CODE"
                         className="w-full h-11 px-3 rounded-full bg-[#f8f9fc] border border-[#E2E8F0] text-xs font-black tracking-widest text-[#003396] uppercase placeholder:text-[#737784] placeholder:font-bold placeholder:tracking-wider placeholder:text-[10px] shadow-inner text-center focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#003396] focus:border-transparent transition-all"
                       />
                     </div>
@@ -299,16 +298,15 @@ export default function App() {
                   <label className="flex items-center gap-2 cursor-pointer group">
                     <div
                       onClick={() => setRememberMe(!rememberMe)}
-                      className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
-                        rememberMe
-                          ? "bg-[#003396] border-[#003396] text-white"
-                          : "bg-white border-[#737784] group-hover:border-[#003396]"
-                      }`}
+                      className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${rememberMe
+                        ? "bg-[#003396] border-[#003396] text-white"
+                        : "bg-white border-[#737784] group-hover:border-[#003396]"
+                        }`}
                     >
                       {rememberMe && <Check className="w-3 h-3 stroke-[3]" />}
                     </div>
                     <span className="text-[11.5px] group-hover:text-[#003396] transition-colors">
-                      Ingat Saya
+                      Remember Me
                     </span>
                   </label>
 
@@ -318,11 +316,11 @@ export default function App() {
                     onClick={() => setIsForgotOpen(true)}
                     className="text-[11.5px] text-[#003396] hover:underline font-semibold transition-colors"
                   >
-                    Lupa kata sandi?
+                    Forgot password?
                   </button>
                 </div>
 
-                {/* Submit Button ("Masuk Portal") */}
+                {/* Submit Button ("Sign In to Portal") */}
                 <button
                   type="submit"
                   disabled={isLoading}
@@ -331,10 +329,10 @@ export default function App() {
                   {isLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Memverifikasi Otorisasi...</span>
+                      <span>Verifying Authorization...</span>
                     </>
                   ) : (
-                    <span>Masuk Portal</span>
+                    <span>Sign In to Portal</span>
                   )}
                 </button>
 
@@ -346,20 +344,7 @@ export default function App() {
                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#003396] hover:text-[#002266] hover:underline transition-colors"
                   >
                     <HelpCircle className="w-3.5 h-3.5 text-[#003396]" />
-                    <span>Panduan Pengguna &amp; SOP</span>
-                  </button>
-                </div>
-
-                {/* Quick Fill Demo Helper */}
-                <div className="text-center pt-1 border-t border-[#E2E8F0]/80 mt-2">
-                  <button
-                    type="button"
-                    onClick={handleFillDemo}
-                    className="inline-flex items-center gap-1 text-[11px] text-[#755a17] hover:text-[#410000] font-medium bg-[#fed889]/30 hover:bg-[#fed889]/60 px-3 py-1 rounded-full border border-[#C1A74F]/50 transition-all"
-                    title="Klik untuk mengisi data uji coba ABVC secara instan"
-                  >
-                    <Sparkles className="w-3 h-3 text-[#C1A74F]" />
-                    <span>Isi Otomatis Akun Demo ABVC</span>
+                    <span>User Guide &amp; SOP</span>
                   </button>
                 </div>
               </form>
@@ -368,10 +353,9 @@ export default function App() {
 
           {/* Footer Note */}
           <div className="mt-8 text-center select-none space-y-1">
-            <div className="flex items-center justify-center gap-2 text-[10px] text-[#737784] font-semibold">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            {/* <div className="flex items-center justify-center text-[10px] text-[#424752] font-semibold">
               <span>ASEAN Biological Surveillance Network • Active</span>
-            </div>
+            </div> */}
             <p className="text-[10px] text-[#737784]/80">
               © 2026 ASEAN Biological Threats Surveillance Centre (ABVC)
             </p>

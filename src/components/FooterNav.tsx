@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Activity, Layers, Home, History, MapPin } from "lucide-react";
+import { Activity, Crosshair, Home, BarChart3, MapPin } from "lucide-react";
 
 export type NavTab = "signals" | "matrix" | "home" | "history" | "maps";
 
@@ -12,15 +12,15 @@ interface FooterNavProps {
 
 export default function FooterNav({ activeTab, onTabChange }: FooterNavProps) {
   const tabs = [
-    { id: "signals" as NavTab, label: "Sinyal", icon: Activity },
-    { id: "matrix" as NavTab, label: "Matriks", icon: Layers },
-    { id: "home" as NavTab, label: "Beranda", icon: Home, isCenter: true },
-    { id: "history" as NavTab, label: "Riwayat", icon: History },
-    { id: "maps" as NavTab, label: "Peta", icon: MapPin },
+    { id: "signals" as NavTab, label: "Signals", icon: Activity },
+    { id: "matrix" as NavTab, label: "Outbreak Location", icon: Crosshair },
+    { id: "home" as NavTab, label: "Home", icon: Home, isCenter: true },
+    { id: "history" as NavTab, label: "Disease Overview", icon: BarChart3 },
+    { id: "maps" as NavTab, label: "Maps", icon: MapPin },
   ];
 
   return (
-    <nav aria-label="Navigasi Utama" className="sticky bottom-0 z-40 w-full bg-white border-t border-[#E2E8F0] shadow-lg select-none pb-[env(safe-area-inset-bottom,0px)]">
+    <nav aria-label="Main Navigation" className="sticky bottom-0 z-40 w-full bg-white border-t border-[#E2E8F0] shadow-lg select-none pb-[env(safe-area-inset-bottom,0px)]">
       <div className="max-w-[430px] mx-auto px-2 pt-1 pb-1 flex items-center justify-around relative">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
@@ -32,7 +32,7 @@ export default function FooterNav({ activeTab, onTabChange }: FooterNavProps) {
                 key={tab.id}
                 type="button"
                 onClick={() => onTabChange(tab.id)}
-                className="relative -top-3 flex flex-col items-center group focus:outline-none"
+                className="relative -top-3 flex flex-col items-center group focus:outline-none cursor-pointer"
               >
                 <div
                   className={`w-13 h-13 rounded-full flex items-center justify-center transition-all duration-300 shadow-md ${
@@ -59,7 +59,7 @@ export default function FooterNav({ activeTab, onTabChange }: FooterNavProps) {
               key={tab.id}
               type="button"
               onClick={() => onTabChange(tab.id)}
-              className="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all group focus:outline-none"
+              className="flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all group focus:outline-none min-w-[62px] max-w-[76px] cursor-pointer"
             >
               <div
                 className={`p-1 rounded-lg transition-colors ${
@@ -71,7 +71,7 @@ export default function FooterNav({ activeTab, onTabChange }: FooterNavProps) {
                 <Icon className={`w-5 h-5 ${isActive ? "stroke-[2.5]" : "stroke-[1.8]"}`} />
               </div>
               <span
-                className={`text-[10px] font-bold mt-0.5 tracking-tight transition-colors ${
+                className={`text-[9px] sm:text-[9.5px] leading-tight text-center font-bold mt-0.5 tracking-tight transition-colors ${
                   isActive ? "text-[#003396] font-extrabold" : "text-[#737784] group-hover:text-[#003396]"
                 }`}
               >

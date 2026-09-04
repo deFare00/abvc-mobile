@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Radio, Play, Pause, ChevronUp, ChevronDown, ExternalLink, ShieldAlert, Sparkles, Globe } from "lucide-react";
+import { Radio, Play, Pause, ChevronUp, ChevronDown, ExternalLink, ShieldAlert, Globe } from "lucide-react";
 import { ThreatLevel } from "@/types/surveillance";
 
 export interface StreamItem {
@@ -92,17 +92,6 @@ export default function LiveStreamTicker() {
   const [direction, setDirection] = useState<"next" | "prev">("next");
   const [selectedItem, setSelectedItem] = useState<StreamItem | null>(null);
 
-  // Auto-rotation timer
-  useEffect(() => {
-    if (isPaused) return;
-
-    const timer = setInterval(() => {
-      handleNext();
-    }, 4000);
-
-    return () => clearInterval(timer);
-  }, [isPaused, currentIndex]);
-
   const handleNext = () => {
     if (isAnimating) return;
     setDirection("next");
@@ -122,6 +111,17 @@ export default function LiveStreamTicker() {
       setIsAnimating(false);
     }, 350);
   };
+
+  // Auto-rotation timer
+  useEffect(() => {
+    if (isPaused) return;
+
+    const timer = setInterval(() => {
+      handleNext();
+    }, 4000);
+
+    return () => clearInterval(timer);
+  }, [isPaused, currentIndex, isAnimating]);
 
   const currentItem = STATIC_STREAM_ITEMS[currentIndex];
 

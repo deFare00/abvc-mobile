@@ -7,10 +7,12 @@ import View from "ol/View";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import GeoJSON from "ol/format/GeoJSON";
-import { Style, Fill, Stroke, Text } from "ol/style";
+import Feature from "ol/Feature";
+import Point from "ol/geom/Point";
+import { Style, Fill, Stroke, Text, Circle as CircleStyle } from "ol/style";
 import { fromLonLat } from "ol/proj";
 import { defaults as defaultControls } from "ol/control";
-import { Globe, Plus, Minus, RotateCcw, Wind, Sparkles, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
+import { MapPin, Plus, Minus, RotateCcw } from "lucide-react";
 import { OutbreakSignal } from "@/types/surveillance";
 
 // ASEAN Center Coordinates (approx 115°E, 4°N)
@@ -47,16 +49,16 @@ interface MapViewProps {
   signals?: OutbreakSignal[];
 }
 
-export default function MapView({ signals }: MapViewProps = {}) {
+export default function MapView({ signals: _signals }: MapViewProps = {}) {
   const mapElementRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const mapRef = useRef<Map | null>(null);
 
   // States
-  const [isWindActive, setIsWindActive] = useState(true);
+  const [isWindActive] = useState(true);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
-  const [gfsStatus, setGfsStatus] = useState<"loading" | "ready" | "fallback">("loading");
-  const [gfsInfo, setGfsInfo] = useState<string>("Memuat data angin GFS...");
+  const [, setGfsStatus] = useState<"loading" | "ready" | "fallback">("loading");
+  const [, setGfsInfo] = useState<string>("Memuat data angin GFS...");
 
   // Grid Data Reference
   const gfsGridRef = useRef<GfsGridData | null>(null);
@@ -82,16 +84,15 @@ export default function MapView({ signals }: MapViewProps = {}) {
 
         // Find U and V components in array
         let uItem = data.find(
-          (d: any) =>
+          (d: { header?: { parameterCategory?: number; parameterNumber?: number } }) =>
             d.header?.parameterCategory === 2 && d.header?.parameterNumber === 2
         );
         let vItem = data.find(
-          (d: any) =>
+          (d: { header?: { parameterCategory?: number; parameterNumber?: number } }) =>
             d.header?.parameterCategory === 2 && d.header?.parameterNumber === 3
         );
 
         if (!uItem || !vItem) {
-          // Fallback to indices 1 and 2
           uItem = data[1];
           vItem = data[2];
         }
@@ -112,7 +113,7 @@ export default function MapView({ signals }: MapViewProps = {}) {
           setGfsStatus("ready");
           setGfsInfo("Data GFS Sipongi Aktif (Grid 1°x1° Global GFS)");
         }
-      } catch (err: any) {
+      } catch (err) {
         console.warn("GFS API fetch notice, using atmospheric model fallback:", err);
         if (isMounted) {
           setGfsStatus("fallback");
@@ -128,22 +129,23 @@ export default function MapView({ signals }: MapViewProps = {}) {
     };
   }, []);
 
-  // 2. Initialize OpenLayers Map with ASEAN Countries Vector Layer
+  // 2. Initialize OpenLayers Map with ASEAN Countries Vector Layer and Outbreak Points
   useEffect(() => {
     if (!mapElementRef.current) return;
 
-    // Load only 10 ASEAN Countries
+    // Load ASEAN Countries GeoJSON
     const vectorSource = new VectorSource({
       url: "/mobile/assets/data/asean_countries.geojson",
       format: new GeoJSON(),
     });
 
     // Style matching reference design (soft peach/pink fill, clean borders, country labels)
-    const aseanStyleFunction = (feature: any) => {
+    const aseanStyleFunction = (feature: unknown) => {
+      const f = feature as { get: (k: string) => string | undefined };
       const countryName =
-        feature.get("ADMIN") ||
-        feature.get("name") ||
-        feature.get("NAME") ||
+        f.get("ADMIN") ||
+        f.get("name") ||
+        f.get("NAME") ||
         "";
 
       return new Style({
@@ -170,6 +172,96 @@ export default function MapView({ signals }: MapViewProps = {}) {
       style: aseanStyleFunction,
     });
 
+    // Disease Outbreak Location Points (Matching Reference Screenshot)
+    const outbreakLocations = [
+      // Philippines (NCR, Cebu, Davao, Quezon City, Iloilo, etc.)
+      { name: "Manila, Philippines", coord: [120.9842, 14.5995], type: "red" },
+      { name: "Quezon City, Philippines", coord: [121.0437, 14.6760], type: "red" },
+      { name: "Cebu, Philippines", coord: [123.8854, 10.3157], type: "red" },
+      { name: "Iloilo, Philippines", coord: [122.5621, 10.7202], type: "red" },
+      { name: "Davao, Philippines", coord: [125.6128, 7.1907], type: "red" },
+      { name: "Zamboanga, Philippines", coord: [122.0790, 6.9214], type: "red" },
+      { name: "Cagayan de Oro, Philippines", coord: [124.6472, 8.4822], type: "red" },
+      { name: "Baguio, Philippines", coord: [120.5960, 16.4023], type: "red" },
+      { name: "Batangas, Philippines", coord: [121.0583, 13.7565], type: "red" },
+      // Indonesia (Java, Sumatra, Sulawesi, Bali, Kalimantan)
+      { name: "Jakarta, Indonesia", coord: [106.8456, -6.2088], type: "blue" },
+      { name: "Bandung, Indonesia", coord: [107.6191, -6.9175], type: "red" },
+      { name: "Semarang, Indonesia", coord: [110.4208, -6.9932], type: "red" },
+      { name: "Surabaya, Indonesia", coord: [112.7521, -7.2575], type: "red" },
+      { name: "Yogyakarta, Indonesia", coord: [110.3695, -7.7956], type: "red" },
+      { name: "Denpasar, Bali", coord: [115.2167, -8.6500], type: "red" },
+      { name: "Mataram, Lombok", coord: [116.1167, -8.5833], type: "red" },
+      { name: "Kupang, NTT", coord: [123.6000, -10.1667], type: "red" },
+      { name: "Medan, Indonesia", coord: [98.6722, 3.5952], type: "red" },
+      { name: "Palembang, Indonesia", coord: [104.7565, -2.9909], type: "red" },
+      { name: "Batam, Indonesia", coord: [104.0305, 1.0456], type: "red" },
+      { name: "Pekanbaru, Indonesia", coord: [101.4478, 0.5071], type: "red" },
+      { name: "Bandar Lampung, Indonesia", coord: [105.2667, -5.4500], type: "red" },
+      { name: "Makassar, Indonesia", coord: [119.4327, -5.1477], type: "red" },
+      { name: "Palu, Indonesia", coord: [119.8707, -0.8917], type: "red" },
+      { name: "Kendari, Indonesia", coord: [122.5126, -3.9985], type: "red" },
+      { name: "Manado, Indonesia", coord: [124.8421, 1.4748], type: "red" },
+      { name: "Banjarmasin, Indonesia", coord: [114.5901, -3.3194], type: "red" },
+      { name: "Balikpapan, Indonesia", coord: [116.8289, -1.2379], type: "red" },
+      { name: "Pontianak, Indonesia", coord: [109.3425, -0.0263], type: "red" },
+      // Singapore & Malaysia
+      { name: "Singapore, Singapore", coord: [103.8198, 1.3521], type: "red" },
+      { name: "Kuala Lumpur, Malaysia", coord: [101.6869, 3.1390], type: "red" },
+      { name: "Penang, Malaysia", coord: [100.3327, 5.4164], type: "red" },
+      { name: "Johor Bahru, Malaysia", coord: [103.7618, 1.4927], type: "red" },
+      { name: "Kota Kinabalu, Malaysia", coord: [116.0753, 5.9804], type: "red" },
+      { name: "Kuching, Malaysia", coord: [110.3592, 1.5533], type: "red" },
+      // Thailand
+      { name: "Bangkok, Thailand", coord: [100.5018, 13.7563], type: "red" },
+      { name: "Chiang Mai, Thailand", coord: [98.9817, 18.7883], type: "red" },
+      { name: "Hat Yai, Thailand", coord: [100.4747, 7.0084], type: "red" },
+      { name: "Phuket, Thailand", coord: [98.3923, 7.8804], type: "red" },
+      // Laos, Cambodia, Vietnam, Myanmar, Brunei
+      { name: "Vientiane, Laos", coord: [102.6331, 17.9757], type: "blue" },
+      { name: "Phnom Penh, Cambodia", coord: [104.9282, 11.5564], type: "red" },
+      { name: "Siem Reap, Cambodia", coord: [103.8564, 13.3671], type: "red" },
+      { name: "Hanoi, Vietnam", coord: [105.8544, 21.0285], type: "red" },
+      { name: "Da Nang, Vietnam", coord: [108.2022, 16.0544], type: "red" },
+      { name: "Ho Chi Minh City, Vietnam", coord: [106.6297, 10.8231], type: "red" },
+      { name: "Can Tho, Vietnam", coord: [105.7844, 10.0452], type: "red" },
+      { name: "Yangon, Myanmar", coord: [96.1951, 16.8661], type: "red" },
+      { name: "Mandalay, Myanmar", coord: [96.0891, 21.9588], type: "red" },
+      { name: "Bandar Seri Begawan, Brunei", coord: [114.9481, 4.9031], type: "red" },
+    ];
+
+    const outbreakFeatures = outbreakLocations.map((loc) => {
+      const feature = new Feature({
+        geometry: new Point(fromLonLat(loc.coord)),
+        name: loc.name,
+        type: loc.type,
+      });
+
+      feature.setStyle(
+        new Style({
+          image: new CircleStyle({
+            radius: 5.5,
+            fill: new Fill({
+              color: loc.type === "blue" ? "#003396" : "#BA1A1A",
+            }),
+            stroke: new Stroke({
+              color: "#FFFFFF",
+              width: 2,
+            }),
+          }),
+        })
+      );
+
+      return feature;
+    });
+
+    const outbreakLayer = new VectorLayer({
+      source: new VectorSource({
+        features: outbreakFeatures,
+      }),
+      zIndex: 15,
+    });
+
     const view = new View({
       center: fromLonLat(ASEAN_CENTER_LON_LAT),
       zoom: DEFAULT_ZOOM,
@@ -182,7 +274,7 @@ export default function MapView({ signals }: MapViewProps = {}) {
 
     const map = new Map({
       target: mapElementRef.current,
-      layers: [vectorLayer],
+      layers: [vectorLayer, outbreakLayer],
       view: view,
       controls: defaultControls({
         zoom: false,
@@ -198,9 +290,9 @@ export default function MapView({ signals }: MapViewProps = {}) {
       const feature = map.forEachFeatureAtPixel(evt.pixel, (f) => f);
       if (feature) {
         const name =
-          (feature as any).get("ADMIN") ||
-          (feature as any).get("name") ||
-          (feature as any).get("NAME");
+          (feature as { get: (k: string) => string | undefined }).get("ADMIN") ||
+          (feature as { get: (k: string) => string | undefined }).get("name") ||
+          (feature as { get: (k: string) => string | undefined }).get("NAME");
         setSelectedCountry(name || "Negara Anggota ASEAN");
       } else {
         setSelectedCountry(null);
@@ -221,13 +313,12 @@ export default function MapView({ signals }: MapViewProps = {}) {
 
     let animationFrameId: number;
 
-    // 200 particles flowing across Southeast Asia
     const particleCount = 180;
     const particles: WindParticle[] = [];
 
     const resetParticle = (p: WindParticle) => {
-      p.lon = 92.0 + Math.random() * 49.0; // 92°E to 141°E
-      p.lat = -10.5 + Math.random() * 34.0; // 10.5°S to 23.5°N
+      p.lon = 92.0 + Math.random() * 49.0;
+      p.lat = -10.5 + Math.random() * 34.0;
       p.age = 0;
       p.maxAge = 40 + Math.random() * 45;
       p.speedMultiplier = 0.9 + Math.random() * 0.4;
@@ -246,105 +337,119 @@ export default function MapView({ signals }: MapViewProps = {}) {
       particles.push(p);
     }
 
-    // Bilinear Interpolation of (u, v) from GFS Grid
     const interpolateGfsVector = (lon: number, lat: number) => {
       const grid = gfsGridRef.current;
       if (!grid) {
-        // Mathematical fallback model if grid not yet loaded
         const u = Math.cos(lat * 0.1) * 3.5 + 4.5;
         const v = -Math.sin(lon * 0.08) * 2.5 - 1.2;
         return { u, v, speed: Math.sqrt(u * u + v * v) };
       }
 
-      // Normalize longitude to [0, 360)
       const lonNorm = ((lon % 360) + 360) % 360;
+      const x = (lonNorm - grid.lo1) / grid.dx;
+      const y = (grid.la1 - lat) / grid.dy;
 
-      // Latitude row in grid (90°N is row 0, -90°S is row 180)
-      const rowFloat = (grid.la1 - lat) / grid.dy;
-      const colFloat = (lonNorm - grid.lo1) / grid.dx;
+      const x0 = Math.floor(x);
+      const x1 = (x0 + 1) % grid.nx;
+      const y0 = Math.floor(y);
+      const y1 = Math.min(y0 + 1, grid.ny - 1);
 
-      const r0 = Math.max(0, Math.min(grid.ny - 2, Math.floor(rowFloat)));
-      const r1 = r0 + 1;
-      const c0 = Math.max(0, Math.min(grid.nx - 1, Math.floor(colFloat)));
-      const c1 = (c0 + 1) % grid.nx;
+      if (y0 < 0 || y0 >= grid.ny) {
+        return { u: 3, v: -1, speed: 3.16 };
+      }
 
-      const fr = rowFloat - r0;
-      const fc = colFloat - c0;
+      const fx = x - x0;
+      const fy = y - y0;
 
-      const idx00 = r0 * grid.nx + c0;
-      const idx01 = r0 * grid.nx + c1;
-      const idx10 = r1 * grid.nx + c0;
-      const idx11 = r1 * grid.nx + c1;
+      const idx00 = y0 * grid.nx + x0;
+      const idx10 = y0 * grid.nx + x1;
+      const idx01 = y1 * grid.nx + x0;
+      const idx11 = y1 * grid.nx + x1;
 
       const u00 = grid.uData[idx00] || 0;
-      const u01 = grid.uData[idx01] || 0;
       const u10 = grid.uData[idx10] || 0;
+      const u01 = grid.uData[idx01] || 0;
       const u11 = grid.uData[idx11] || 0;
 
       const v00 = grid.vData[idx00] || 0;
-      const v01 = grid.vData[idx01] || 0;
       const v10 = grid.vData[idx10] || 0;
+      const v01 = grid.vData[idx01] || 0;
       const v11 = grid.vData[idx11] || 0;
 
-      // Bilinear interpolation
-      const u = (1 - fr) * ((1 - fc) * u00 + fc * u01) + fr * ((1 - fc) * u10 + fc * u11);
-      const v = (1 - fr) * ((1 - fc) * v00 + fc * v01) + fr * ((1 - fc) * v10 + fc * v11);
+      const u =
+        (1 - fx) * (1 - fy) * u00 +
+        fx * (1 - fy) * u10 +
+        (1 - fx) * fy * u01 +
+        fx * fy * u11;
 
-      const speed = Math.sqrt(u * u + v * v);
-      return { u, v, speed };
+      const v =
+        (1 - fx) * (1 - fy) * v00 +
+        fx * (1 - fy) * v10 +
+        (1 - fx) * fy * v01 +
+        fx * fy * v11;
+
+      return { u, v, speed: Math.sqrt(u * u + v * v) };
     };
 
     const render = () => {
-      const map = mapRef.current;
-      if (!map) return;
-
-      const size = map.getSize();
-      if (size) {
-        if (canvas.width !== size[0] || canvas.height !== size[1]) {
-          canvas.width = size[0];
-          canvas.height = size[1];
-        }
+      const currentMap = mapRef.current;
+      if (!currentMap) {
+        animationFrameId = requestAnimationFrame(render);
+        return;
       }
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const size = currentMap.getSize();
+      if (!size) {
+        animationFrameId = requestAnimationFrame(render);
+        return;
+      }
+
+      const [width, height] = size;
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+
+      ctx.fillStyle = "rgba(248, 250, 252, 0.16)";
+      ctx.fillRect(0, 0, width, height);
 
       particles.forEach((p) => {
-        const { u, v, speed } = interpolateGfsVector(p.lon, p.lat);
-
-        // Convert GFS wind speed to coordinate step delta
-        const stepScale = 0.015 * p.speedMultiplier;
-        const deltaLon = u * stepScale;
-        const deltaLat = v * stepScale;
-
-        // Current start point on screen
-        const startCoord = fromLonLat([p.lon, p.lat]);
-        const startPixel = map.getPixelFromCoordinate(startCoord);
-
-        // Advance particle
-        p.lon += deltaLon;
-        p.lat += deltaLat;
         p.age++;
-
-        // End point on screen
-        const endCoord = fromLonLat([p.lon, p.lat]);
-        const endPixel = map.getPixelFromCoordinate(endCoord);
-
-        if (p.age > p.maxAge || p.lon > 143 || p.lon < 91 || p.lat > 28 || p.lat < -11.5) {
+        if (p.age > p.maxAge) {
           resetParticle(p);
           return;
         }
 
-        if (startPixel && endPixel) {
-          const progress = p.age / p.maxAge;
-          const alpha = Math.sin(progress * Math.PI) * 0.7;
+        const vector = interpolateGfsVector(p.lon, p.lat);
+        const dt = 0.055 * p.speedMultiplier;
 
-          // Color coded by GFS wind speed
-          if (speed > 10) {
-            ctx.strokeStyle = `rgba(245, 158, 11, ${alpha})`; // High wind (Gold / Amber)
-          } else if (speed > 5) {
-            ctx.strokeStyle = `rgba(14, 165, 233, ${alpha})`; // Moderate wind (Cyan / Sky)
+        const startPixel = currentMap.getPixelFromCoordinate(fromLonLat([p.lon, p.lat]));
+
+        p.lon += (vector.u * dt) / Math.cos((p.lat * Math.PI) / 180);
+        p.lat += vector.v * dt;
+
+        const endPixel = currentMap.getPixelFromCoordinate(fromLonLat([p.lon, p.lat]));
+
+        if (startPixel && endPixel) {
+          if (
+            startPixel[0] < -20 ||
+            startPixel[0] > width + 20 ||
+            startPixel[1] < -20 ||
+            startPixel[1] > height + 20
+          ) {
+            resetParticle(p);
+            return;
+          }
+
+          const lifeProgress = p.age / p.maxAge;
+          const alpha = Math.sin(lifeProgress * Math.PI) * 0.75;
+
+          if (vector.speed > 8) {
+            ctx.strokeStyle = `rgba(217, 119, 6, ${alpha})`;
+          } else if (vector.speed > 4.5) {
+            ctx.strokeStyle = `rgba(14, 165, 233, ${alpha})`;
           } else {
-            ctx.strokeStyle = `rgba(16, 185, 129, ${alpha})`; // Light wind (Emerald / Green)
+            ctx.strokeStyle = `rgba(16, 185, 129, ${alpha})`;
           }
 
           ctx.lineWidth = 1.6;
@@ -400,40 +505,31 @@ export default function MapView({ signals }: MapViewProps = {}) {
   return (
     <div className="space-y-3.5 pb-4 animate-in fade-in duration-300">
       
-      {/* Header Info Card */}
-      <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#E2E8F0] shadow-sm flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2 bg-[#003396]/10 text-[#003396] rounded-2xl border border-[#003396]/20">
-            <Globe className="w-5 h-5 text-[#003396]" />
-          </div>
-          <div>
-            <h2 className="text-sm sm:text-base font-black text-[#003396] leading-tight">
-              Peta Arah Angin GFS Kawasan ASEAN
-            </h2>
-            <p className="text-[10.5px] font-semibold text-[#737784] flex items-center gap-1.5 mt-0.5">
-              <span className={`w-2 h-2 rounded-full ${gfsStatus === "ready" ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`}></span>
-              <span>{gfsInfo}</span>
-            </p>
-          </div>
+      {/* 1. Header Info Card (SPATIAL DISTRIBUTION OF DISEASE OUTBREAK) */}
+      <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#E2E8F0] shadow-sm space-y-2">
+        <div>
+          <h2 className="text-sm sm:text-base font-black text-[#003396] tracking-tight uppercase">
+            SPATIAL DISTRIBUTION OF DISEASE OUTBREAK
+          </h2>
+          <p className="text-[11px] sm:text-xs font-medium text-[#5c6068] mt-1 leading-snug">
+            This mapping presents geographic distribution of cases, deaths, and alert status in Southeast Asia.
+          </p>
         </div>
 
-        {/* Wind Layer Switcher */}
-        <button
-          type="button"
-          onClick={() => setIsWindActive(!isWindActive)}
-          className={`px-3 py-1.5 rounded-full border text-[10.5px] font-bold flex items-center gap-1.5 transition-all ${
-            isWindActive
-              ? "bg-emerald-50 text-emerald-800 border-emerald-300 shadow-xs font-extrabold"
-              : "bg-[#f8f9fc] text-[#737784] border-[#E2E8F0]"
-          }`}
-          title="Nyalakan / Matikan Lapisan Arah Angin GFS"
-        >
-          <Wind className="w-3.5 h-3.5" />
-          <span>{isWindActive ? "GFS ON" : "GFS OFF"}</span>
-        </button>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f0f5ff] border border-[#d8e2ff] text-[10.5px] font-bold text-[#003396]">
+          <MapPin className="w-3.5 h-3.5 text-[#003396]" />
+          <span>Region: ASEAN • 100 locations detected</span>
+        </div>
       </div>
 
-      {/* Main OpenLayers Map Container (Only ASEAN Region) */}
+      {/* Card Peta Arah Angin GFS Kawasan ASEAN - TEMPORARILY HIDDEN */}
+      {/*
+      <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#E2E8F0] shadow-sm flex items-center justify-between">
+        ...
+      </div>
+      */}
+
+      {/* 2. Main OpenLayers Map Container (Only ASEAN Region) */}
       <div className="relative w-full h-[470px] sm:h-[530px] bg-gradient-to-b from-[#F8FAFC] via-[#F1F5F9] to-[#E2E8F0] rounded-3xl overflow-hidden border border-[#E2E8F0] shadow-md">
         
         {/* OpenLayers Map Canvas Container */}
@@ -450,43 +546,46 @@ export default function MapView({ signals }: MapViewProps = {}) {
 
         {/* Selected Country Badge (When tapped) */}
         {selectedCountry && (
-          <div className="absolute top-4 left-4 z-20 pointer-events-none animate-in fade-in slide-in-from-top-1 duration-150">
+          <div className="absolute top-4 right-4 z-20 pointer-events-none animate-in fade-in slide-in-from-top-1 duration-150">
             <div className="px-3 py-1 bg-[#003396] text-white text-[11px] font-bold rounded-xl shadow-md border border-[#C1A74F]">
               Negara: {selectedCountry}
             </div>
           </div>
         )}
 
-        {/* Bottom-Right: OpenLayers Navigation Controls */}
-        <div className="absolute bottom-4 right-3 z-20 flex flex-col gap-1.5 pointer-events-auto select-none">
+        {/* Top-Left: OpenLayers Zoom Controls (Matching Screenshot) */}
+        <div className="absolute top-3.5 left-3.5 z-20 flex flex-col gap-1 pointer-events-auto select-none">
           <button
             type="button"
             onClick={handleZoomIn}
-            className="w-9 h-9 rounded-xl bg-white/95 backdrop-blur-md hover:bg-white text-[#003396] font-extrabold shadow-md border border-[#E2E8F0] flex items-center justify-center transition-transform active:scale-90"
+            className="w-7 h-7 rounded-lg bg-white/95 backdrop-blur-md hover:bg-white text-[#191c1e] font-extrabold shadow-sm border border-[#E2E8F0] flex items-center justify-center transition-transform active:scale-95"
             title="Perbesar Peta (Zoom In)"
             aria-label="Zoom In"
           >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
           </button>
 
           <button
             type="button"
             onClick={handleZoomOut}
-            className="w-9 h-9 rounded-xl bg-white/95 backdrop-blur-md hover:bg-white text-[#003396] font-extrabold shadow-md border border-[#E2E8F0] flex items-center justify-center transition-transform active:scale-90"
+            className="w-7 h-7 rounded-lg bg-white/95 backdrop-blur-md hover:bg-white text-[#191c1e] font-extrabold shadow-sm border border-[#E2E8F0] flex items-center justify-center transition-transform active:scale-95"
             title="Perkecil Peta (Zoom Out)"
             aria-label="Zoom Out"
           >
-            <Minus className="w-4 h-4 stroke-[2.5]" />
+            <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
           </button>
+        </div>
 
+        {/* Bottom-Right: Reset ASEAN View Control */}
+        <div className="absolute bottom-3.5 right-3.5 z-20 pointer-events-auto select-none">
           <button
             type="button"
             onClick={handleResetAseanView}
-            className="w-9 h-9 rounded-xl bg-[#003396] text-white hover:bg-[#002266] font-bold shadow-md border border-[#C1A74F]/50 flex items-center justify-center transition-transform active:scale-90"
+            className="w-8 h-8 rounded-xl bg-[#003396] text-white hover:bg-[#002266] font-bold shadow-md border border-[#C1A74F]/50 flex items-center justify-center transition-transform active:scale-90"
             title="Pusatkan ke Kawasan ASEAN"
             aria-label="Reset ASEAN View"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

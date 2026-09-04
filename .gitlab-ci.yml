@@ -14,8 +14,10 @@ deploy_production:
   environment:
     name: production
   script:
-    - test -r /home/nlpdev/docker/abvc-mobile/.env
-    - install -m 600 /home/nlpdev/docker/abvc-mobile/.env .env
+    - test -n "${NEXT_PUBLIC_API_BASE_URL:-}"
+    - test -n "${NEXT_PUBLIC_API_TOKEN:-}"
+    - umask 077
+    - printf 'NEXT_PUBLIC_API_BASE_URL=%s\nNEXT_PUBLIC_API_TOKEN=%s\n' "$NEXT_PUBLIC_API_BASE_URL" "$NEXT_PUBLIC_API_TOKEN" > .env
     - trap 'rm -f .env' EXIT
     - docker compose -f docker-compose.yml config --quiet
     - docker compose -f docker-compose.yml build --pull=false

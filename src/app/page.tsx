@@ -45,6 +45,20 @@ export default function App() {
   const [isNlpModalOpen, setIsNlpModalOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
+  // Read URL query parameter for tab if present
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab") as NavTab | null;
+      if (
+        tabParam &&
+        ["signals", "matrix", "home", "history", "maps"].includes(tabParam)
+      ) {
+        setActiveTab(tabParam);
+      }
+    }
+  }, []);
+
   const showToast = (message: string, type: ToastType = "info") => {
     setToast({ message, type });
     setTimeout(() => {

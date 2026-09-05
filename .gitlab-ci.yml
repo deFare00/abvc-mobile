@@ -1,6 +1,10 @@
 stages:
   - deploy
 
+variables:
+  DOCKER_BUILDKIT: "1"
+  COMPOSE_DOCKER_CLI_BUILD: "1"
+
 workflow:
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
@@ -14,6 +18,11 @@ deploy_production:
   environment:
     name: production
   script:
+    - test -n "${NEXT_PUBLIC_API_BASE_URL:-}"
+    - test -n "${NEXT_PUBLIC_API_TOKEN:-}"
+    - umask 077
+    - printf 'NEXT_PUBLIC_API_BASE_URL=%s\nNEXT_PUBLIC_API_TOKEN=%s\n' "$NEXT_PUBLIC_API_BASE_URL" "$NEXT_PUBLIC_API_TOKEN" > .env
+    - trap 'rm -f .env' EXIT
     - docker compose -f docker-compose.yml config --quiet
     - docker compose -f docker-compose.yml build --pull=false
     - docker compose -f docker-compose.yml up -d --force-recreate --remove-orphans

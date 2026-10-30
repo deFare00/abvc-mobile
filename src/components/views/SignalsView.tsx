@@ -11,7 +11,7 @@ interface SignalsViewProps {
 
 export default function SignalsView({ signals, onOpenNlpModal }: SignalsViewProps) {
   const [search, setSearch] = useState("");
-  const [filterLevel, setFilterLevel] = useState<string>("Semua");
+  const [filterLevel, setFilterLevel] = useState<string>("All");
 
   const filtered = signals.filter((s) => {
     const matchSearch =
@@ -19,7 +19,7 @@ export default function SignalsView({ signals, onOpenNlpModal }: SignalsViewProp
       s.country.toLowerCase().includes(search.toLowerCase()) ||
       s.location.toLowerCase().includes(search.toLowerCase());
 
-    const matchLevel = filterLevel === "Semua" || s.threatLevel === filterLevel;
+    const matchLevel = filterLevel === "All" || s.threatLevel === filterLevel;
 
     return matchSearch && matchLevel;
   });
@@ -34,15 +34,15 @@ export default function SignalsView({ signals, onOpenNlpModal }: SignalsViewProp
               <Activity className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-extrabold text-[#003396]">Sinyal Surveilans Wabah</h2>
-              <p className="text-[11px] text-[#737784]">Aliran Deteksi Real-Time Kawasan ASEAN</p>
+              <h2 className="text-base font-extrabold text-[#003396]">Outbreak Surveillance Signals</h2>
+              <p className="text-[11px] text-[#737784]">Real-Time Detection Stream across ASEAN</p>
             </div>
           </div>
           <button
             onClick={onOpenNlpModal}
             className="px-3 py-1.5 bg-[#003396] text-white font-bold text-xs rounded-full shadow hover:bg-[#002266] transition-all"
           >
-            + Analisis NLP
+            + NLP Analysis
           </button>
         </div>
 
@@ -52,7 +52,7 @@ export default function SignalsView({ signals, onOpenNlpModal }: SignalsViewProp
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari penyakit, patogen, atau lokasi..."
+            placeholder="Search disease, pathogen, or location..."
             className="w-full h-10 px-4 pl-9 rounded-full bg-[#f8f9fc] border border-[#E2E8F0] text-xs text-[#191c1e] placeholder:text-[#737784] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#003396]"
           />
           <Search className="w-4 h-4 text-[#737784] absolute left-3 top-3" />
@@ -60,7 +60,7 @@ export default function SignalsView({ signals, onOpenNlpModal }: SignalsViewProp
 
         {/* Level Filters */}
         <div className="flex items-center gap-1.5 text-xs overflow-x-auto pb-0.5 no-scrollbar">
-          {["Semua", "High Alert", "Alert", "Normal"].map((lvl) => (
+          {["All", "High Alert", "Alert", "Normal"].map((lvl) => (
             <button
               key={lvl}
               type="button"
@@ -90,11 +90,11 @@ export default function SignalsView({ signals, onOpenNlpModal }: SignalsViewProp
                   <h3 className="font-extrabold text-sm text-[#003396]">{sig.disease}</h3>
                   <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 font-semibold flex items-center gap-1">
                     <ShieldCheck className="w-3 h-3" />
-                    Terverifikasi
+                    Verified
                   </span>
                 </div>
                 <p className="text-[11px] text-[#737784] font-medium mt-0.5">
-                  Patogen: <em>{sig.pathogen}</em>
+                  Pathogen: <em>{sig.pathogen}</em>
                 </p>
               </div>
 

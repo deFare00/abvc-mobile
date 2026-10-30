@@ -46,10 +46,10 @@ export default function HomeView({
   }, []);
 
   // Country Filter for Live Signals
-  const [selectedCountry, setSelectedCountry] = useState<string>("Semua");
-  const countries = ["Semua", "Indonesia", "Vietnam", "Malaysia", "Thailand", "Filipina"];
+  const [selectedCountry, setSelectedCountry] = useState<string>("All");
+  const countries = ["All", "Indonesia", "Vietnam", "Malaysia", "Thailand", "Philippines"];
 
-  const filteredSignals = selectedCountry === "Semua"
+  const filteredSignals = selectedCountry === "All"
     ? signals
     : signals.filter((s) => s.country.toLowerCase() === selectedCountry.toLowerCase());
 
@@ -62,7 +62,7 @@ export default function HomeView({
         {/* Welcome Text */}
         <div className="text-center space-y-1">
           <span className="text-[11px] font-bold tracking-widest text-[#737784] uppercase">
-            SELAMAT DATANG
+            WELCOME
           </span>
           <h2 className="text-xl sm:text-2xl font-black text-[#003396] tracking-tight leading-tight">
             {user.role}
@@ -80,7 +80,7 @@ export default function HomeView({
             </div>
             <div>
               <p className="text-[10px] font-bold text-[#737784] uppercase tracking-wider">
-                WAKTU SISTEM
+                SYSTEM TIME
               </p>
               <p className="text-xs font-bold text-[#191c1e]">{dateString}</p>
             </div>
@@ -103,7 +103,7 @@ export default function HomeView({
           className="w-full py-3.5 px-4 rounded-full bg-gradient-to-r from-[#003396] via-[#0052b4] to-[#003396] hover:from-[#002266] hover:to-[#003c87] text-white font-extrabold text-xs sm:text-sm tracking-wide shadow-md shadow-[#003396]/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 border border-[#C1A74F]/50"
         >
           <BrainCircuit className="w-4 h-4 text-[#fed889]" />
-          <span>Deteksi &amp; Analisis Teks NLP (Input Laporan)</span>
+          <span>NLP Text Detection &amp; Analysis (Submit Report)</span>
           <ArrowRight className="w-3.5 h-3.5 ml-1" />
         </button>
 
@@ -114,14 +114,14 @@ export default function HomeView({
           <div className="bg-[#f8f9fc] rounded-2xl p-4 border border-[#E2E8F0] flex flex-col justify-between shadow-xs hover:border-[#003396]/30 transition-all">
             <div>
               <span className="text-3xl font-black text-[#003396] tracking-tight block">
-                {signals.length} Sinyal
+                {signals.length} Signals
               </span>
               <span className="text-xs font-bold text-[#191c1e] block mt-1">
-                Total Sinyal Bulan Ini
+                Total Signals This Month
               </span>
             </div>
             <p className="text-[10px] text-[#737784] mt-3 leading-relaxed">
-              Sinyal ancaman terdeteksi otomatis via AI NLP regional
+              Threat signals detected automatically via regional NLP AI
             </p>
           </div>
 
@@ -130,10 +130,10 @@ export default function HomeView({
             {/* Small Card 1 */}
             <div className="bg-[#f8f9fc] rounded-2xl p-3 border border-[#E2E8F0] shadow-xs hover:border-[#003396]/30 transition-all">
               <span className="text-xl font-black text-[#003396] tracking-tight block">
-                1,428 Berita
+                1,428 Articles
               </span>
               <span className="text-[11px] font-bold text-[#424752] block">
-                Total Artikel Dianalisis
+                Total Articles Analyzed
               </span>
             </div>
 
@@ -143,7 +143,7 @@ export default function HomeView({
                 98.4%
               </span>
               <span className="text-[11px] font-bold text-[#424752] block">
-                Akurasi AI &amp; NLP Model
+                AI &amp; NLP Model Accuracy
               </span>
             </div>
           </div>
@@ -162,7 +162,7 @@ export default function HomeView({
             <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#003396] group-hover:scale-110 transition-transform shadow-xs">
               <MapPin className="w-5 h-5 text-[#003396]" />
             </div>
-            <span className="text-[10.5px] font-bold text-[#191c1e] mt-1.5">Peta Spasial</span>
+            <span className="text-[10.5px] font-bold text-[#191c1e] mt-1.5">Spatial Map</span>
           </button>
 
           <button
@@ -173,7 +173,7 @@ export default function HomeView({
             <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#003396] group-hover:scale-110 transition-transform shadow-xs">
               <BrainCircuit className="w-5 h-5 text-[#003396]" />
             </div>
-            <span className="text-[10.5px] font-bold text-[#191c1e] mt-1.5">Ekstraksi NLP</span>
+            <span className="text-[10.5px] font-bold text-[#191c1e] mt-1.5">NLP Extraction</span>
           </button>
 
           <button
@@ -184,7 +184,7 @@ export default function HomeView({
             <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#003396] group-hover:scale-110 transition-transform shadow-xs">
               <Layers className="w-5 h-5 text-[#003396]" />
             </div>
-            <span className="text-[10.5px] font-bold text-[#191c1e] mt-1.5">Matriks Risiko</span>
+            <span className="text-[10.5px] font-bold text-[#191c1e] mt-1.5">Risk Matrix</span>
           </button>
 
           <button
@@ -195,7 +195,7 @@ export default function HomeView({
             <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#003396] group-hover:scale-110 transition-transform shadow-xs">
               <History className="w-5 h-5 text-[#003396]" />
             </div>
-            <span className="text-[10.5px] font-bold text-[#191c1e] mt-1.5">Log Sinyal</span>
+            <span className="text-[10.5px] font-bold text-[#191c1e] mt-1.5">Signal Logs</span>
           </button>
         </div>
       </div>
@@ -206,14 +206,14 @@ export default function HomeView({
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-[#003396]" />
             <h3 className="text-xs sm:text-sm font-extrabold text-[#003396]">
-              Sinyal Deteksi Dini Terkini
+              Latest Early Detection Signals
             </h3>
           </div>
           <button
             onClick={() => onNavigateTab("signals")}
             className="text-[11px] font-bold text-[#003396] hover:underline flex items-center gap-0.5"
           >
-            <span>Lihat Semua</span>
+            <span>View All</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -269,7 +269,7 @@ export default function HomeView({
                 {sig.snippet}
               </p>
               <div className="flex items-center justify-between text-[10px] text-[#737784] pt-1 border-t border-[#E2E8F0]/60">
-                <span>Sumber: {sig.source}</span>
+                <span>Source: {sig.source}</span>
                 <span>{sig.timestamp}</span>
               </div>
             </div>

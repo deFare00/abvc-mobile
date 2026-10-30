@@ -1348,16 +1348,6 @@ export default function EbsModuleView({
                           <span className="text-xs font-black text-[#003396]">
                             {loc.disease}
                           </span>
-                          <span
-                            className={`px-1.5 py-0.5 rounded text-[8.5px] font-bold uppercase ${loc.severity === "AWAS"
-                                ? "bg-red-500 text-white"
-                                : loc.severity === "SIAGA"
-                                  ? "bg-amber-500 text-white"
-                                  : "bg-blue-100 text-[#003396]"
-                              }`}
-                          >
-                            {loc.severity || "NORMAL"}
-                          </span>
                         </div>
                         <div className="text-[10.5px] font-bold text-[#191c1e] mt-0.5 flex items-center gap-1">
                           <MapPin className="w-3 h-3 text-rose-500" />

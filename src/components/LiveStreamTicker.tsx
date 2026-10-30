@@ -35,8 +35,8 @@ const STATIC_STREAM_ITEMS: StreamItem[] = [
     country: "Vietnam",
     location: "Mekong Delta River Basin",
     source: "WHO Regional Alert • NLP Stream",
-    timeAgo: "8 menit lalu",
-    summary: "Analisis NLP mendeteksi laporan kematian 450 unggas air; 12 kontak erat peternak dalam observasi.",
+    timeAgo: "8 min ago",
+    summary: "NLP analysis detected 450 waterfowl mortalities; 12 close contacts among farm workers under observation.",
     keywords: ["H5N1 Cluster", "NLP Text Mining", "Mekong Basin"],
   },
   {
@@ -44,10 +44,10 @@ const STATIC_STREAM_ITEMS: StreamItem[] = [
     threatLevel: "Normal",
     disease: "Dengue DENV-3",
     country: "Malaysia",
-    location: "Selangor & Wilayah Persekutuan",
+    location: "Selangor & Federal Territory of Kuala Lumpur",
     source: "MOH Malaysia Surveillance",
-    timeAgo: "15 menit lalu",
-    summary: "Peringatan dini curah hujan ekstrem; indeks densitas jentik Aedes terpantau meningkat 14%.",
+    timeAgo: "15 min ago",
+    summary: "Early warning for extreme rainfall; Aedes larval density index increased by 14%.",
     keywords: ["DENV-3", "Aedes Density", "Urban Surveillance"],
   },
   {
@@ -57,8 +57,8 @@ const STATIC_STREAM_ITEMS: StreamItem[] = [
     country: "Thailand",
     location: "Southern Border Checkpoint",
     source: "ASEAN Bio-Border Network",
-    timeAgo: "28 menit lalu",
-    summary: "Surveilans rutin sampel non-invasif kelelawar Pteropus; parameter isolasi peternakan aman.",
+    timeAgo: "28 min ago",
+    summary: "Routine non-invasive sampling of Pteropus bats; farm buffer isolation parameters secure.",
     keywords: ["Henipavirus", "Pteropus Bats", "Border Buffer"],
   },
   {
@@ -68,8 +68,8 @@ const STATIC_STREAM_ITEMS: StreamItem[] = [
     country: "Filipina",
     location: "Mindanao Island",
     source: "Bureau of Disease Prevention",
-    timeAgo: "45 menit lalu",
-    summary: "Penguatan surveilans AFP (Acute Flaccid Paralysis) dan pengambilan sampel air limbah lingkungan.",
+    timeAgo: "45 min ago",
+    summary: "Reinforced Acute Flaccid Paralysis (AFP) surveillance and environmental wastewater sampling.",
     keywords: ["cVDPV2", "Wastewater Sampling", "AFP Surveillance"],
   },
   {
@@ -79,8 +79,8 @@ const STATIC_STREAM_ITEMS: StreamItem[] = [
     country: "Indonesia",
     location: "Pantai Utara Jakarta & Semarang",
     source: "Dinas Kesehatan Provinsi",
-    timeAgo: "1 jam lalu",
-    summary: "Peringatan dini genangan rob air laut; ketersediaan profilaksis doksisiklin faskes 100% siap.",
+    timeAgo: "1 hr ago",
+    summary: "Coastal tidal flooding early alert; healthcare facility doxycycline prophylaxis supply at 100% readiness.",
     keywords: ["Leptospira", "Tidal Flooding", "Prophylaxis Readiness"],
   },
 ];
@@ -179,7 +179,7 @@ export default function LiveStreamTicker() {
             type="button"
             onClick={handlePrev}
             className="p-1 rounded-lg bg-[#f8f9fc] hover:bg-[#d8e2ff] text-[#003396] border border-[#E2E8F0] transition-colors"
-            title="Sinyal Sebelumnya"
+            title="Previous Signal"
             aria-label="Previous ticker item"
           >
             <ChevronUp className="w-3 h-3" />
@@ -189,7 +189,7 @@ export default function LiveStreamTicker() {
             type="button"
             onClick={handleNext}
             className="p-1 rounded-lg bg-[#f8f9fc] hover:bg-[#d8e2ff] text-[#003396] border border-[#E2E8F0] transition-colors"
-            title="Sinyal Selanjutnya"
+            title="Next Signal"
             aria-label="Next ticker item"
           >
             <ChevronDown className="w-3 h-3" />
@@ -268,7 +268,7 @@ export default function LiveStreamTicker() {
               <div className="flex items-center gap-2">
                 <ShieldAlert className="w-5 h-5 text-[#003396]" />
                 <h4 className="font-extrabold text-sm text-[#003396]">
-                  Detail Sinyal Live Stream
+                  Live Stream Signal Details
                 </h4>
               </div>
               <button
@@ -297,7 +297,7 @@ export default function LiveStreamTicker() {
                   <span className="font-bold text-[#003396]">{selectedItem.source}</span>
                 </div>
                 <div className="flex justify-between text-[#737784]">
-                  <span>Waktu Deteksi:</span>
+                  <span>Detection Time:</span>
                   <span className="font-bold text-[#191c1e]">{selectedItem.timeAgo}</span>
                 </div>
               </div>
@@ -323,7 +323,7 @@ export default function LiveStreamTicker() {
               onClick={() => setSelectedItem(null)}
               className="w-full mt-2 py-2.5 bg-[#003396] text-white font-bold text-xs rounded-full shadow hover:bg-[#002266] transition-all"
             >
-              Tutup Rincian
+              Close Details
             </button>
           </div>
         </div>

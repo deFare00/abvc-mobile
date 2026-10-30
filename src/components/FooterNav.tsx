@@ -12,15 +12,15 @@ interface FooterNavProps {
 
 export default function FooterNav({ activeTab, onTabChange }: FooterNavProps) {
   const tabs = [
-    { id: "signals" as NavTab, label: "Sinyal", icon: Activity },
-    { id: "matrix" as NavTab, label: "Matriks", icon: Layers },
-    { id: "home" as NavTab, label: "Beranda", icon: Home, isCenter: true },
-    { id: "history" as NavTab, label: "Riwayat", icon: History },
-    { id: "maps" as NavTab, label: "Peta", icon: MapPin },
+    { id: "signals" as NavTab, label: "Signals", icon: Activity },
+    { id: "matrix" as NavTab, label: "Matrix", icon: Layers },
+    { id: "home" as NavTab, label: "Home", icon: Home, isCenter: true },
+    { id: "history" as NavTab, label: "History", icon: History },
+    { id: "maps" as NavTab, label: "Maps", icon: MapPin },
   ];
 
   return (
-    <nav aria-label="Navigasi Utama" className="sticky bottom-0 z-40 w-full bg-white border-t border-[#E2E8F0] shadow-lg select-none pb-[env(safe-area-inset-bottom,0px)]">
+    <nav aria-label="Main Navigation" className="sticky bottom-0 z-40 w-full bg-white border-t border-[#E2E8F0] shadow-lg select-none pb-[env(safe-area-inset-bottom,0px)]">
       <div className="max-w-[430px] mx-auto px-2 pt-1 pb-1 flex items-center justify-around relative">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;

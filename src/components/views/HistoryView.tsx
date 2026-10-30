@@ -7,35 +7,35 @@ export default function HistoryView() {
   const auditLogs = [
     {
       id: "LOG-902-1",
-      action: "Otorisasi Akses Petugas Lapangan",
+      action: "Field Officer Access Authorization",
       user: "Dr. Hendra Wijaya (Super Admin)",
-      timestamp: "Hari ini, 09:41 WIB",
-      status: "Sukses",
-      detail: "Sesi login dari perangkat mobile terverifikasi geofencing pos pusat.",
+      timestamp: "Today, 09:41 UTC+7",
+      status: "Success",
+      detail: "Mobile login session verified via central post geofencing.",
     },
     {
       id: "LOG-902-2",
-      action: "Ekstraksi NLP Multilingual",
+      action: "Multilingual NLP Extraction",
       user: "AI Model ABVC-NLP-v4",
-      timestamp: "Hari ini, 09:30 WIB",
+      timestamp: "Today, 09:30 UTC+7",
       status: "Sukses",
-      detail: "Pemrosesan 128 artikel berita online regional bahasa Vietnam & Melayu.",
+      detail: "Processed 128 regional online news articles in Vietnamese & Malay.",
     },
     {
       id: "LOG-902-3",
-      action: "Pembaruan Sinyal Mpox Clade Ib",
+      action: "Mpox Clade Ib Signal Update",
       user: "Surveillance Desk Batam",
-      timestamp: "Hari ini, 08:15 WIB",
-      status: "Terverifikasi",
-      detail: "Validasi data isolasi klinis pada pos karantina pelabuhan feri.",
+      timestamp: "Today, 08:15 UTC+7",
+      status: "Verified",
+      detail: "Clinical isolation data validated at ferry port quarantine post.",
     },
     {
       id: "LOG-901-4",
-      action: "Sinkronisasi Data WHO Regional Office",
+      action: "WHO Regional Office Data Sync",
       user: "System Automated Sync",
-      timestamp: "Kemarin, 23:59 WIB",
+      timestamp: "Yesterday, 23:59 UTC+7",
       status: "Sukses",
-      detail: "Pertukaran data epidemiologi lintas negara anggota ASEAN.",
+      detail: "Cross-border epidemiological data exchange with ASEAN member states.",
     },
   ];
 
@@ -48,12 +48,12 @@ export default function HistoryView() {
             <History className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-extrabold text-[#003396]">Riwayat &amp; Log Audit</h2>
-            <p className="text-[11px] text-[#737784]">Catatan Transaksi &amp; Sinkronisasi Surveilans</p>
+            <h2 className="text-base font-extrabold text-[#003396]">History &amp; Audit Logs</h2>
+            <p className="text-[11px] text-[#737784]">Surveillance Transactions &amp; Synchronization Records</p>
           </div>
         </div>
         <p className="text-xs text-[#424752] leading-relaxed pt-1">
-          Seluruh aktivitas deteksi, ekstraksi AI NLP, dan verifikasi patogen dicatat secara permanen untuk integritas data.
+          All detection, AI NLP extraction, and pathogen verification activities are recorded permanently for data integrity.
         </p>
       </div>
 

@@ -24,17 +24,17 @@ export default function NlpAnalyzeModal({
   const sampleTexts = [
     {
       title: "Sample 1: Mpox Border Screening",
-      text: "Laporan skrining pos kesehatan pelabuhan Batam mendeteksi 2 penumpang kapal feri rute Singapura mengalami demam akut disertai lesi lentikular pada telapak tangan dan pembesaran kelenjar getah bening.",
+      text: "Port health screening in Batam detected 2 ferry passengers from Singapore with acute febrile symptoms accompanied by lenticular lesions on palms and lymphadenopathy.",
       disease: "Mpox Clade Ib",
       pathogen: "Monkeypox virus",
       country: "Indonesia",
-      location: "Pelabuhan Internasional Batam",
+      location: "Batam International Seaport",
       threat: "High Alert" as const,
       confidence: 98.4,
     },
     {
       title: "Sample 2: Avian Flu Cluster",
-      text: "Dinas Peternakan dan Kesehatan Hewan menemukan kematian mendadak pada 450 ekor unggas air di peternakan rakyat perbatasan delta sungai, disertai gejala pernapasan berat pada pekerja kandang.",
+      text: "Department of Animal Health identified sudden mortality among 450 waterfowl at a river delta farm, accompanied by severe respiratory symptoms among poultry workers.",
       disease: "Avian Influenza (H5N1)",
       pathogen: "Influenza A H5N1",
       country: "Vietnam",
@@ -59,10 +59,10 @@ export default function NlpAnalyzeModal({
         id: `SIG-${Date.now().toString().slice(-4)}`,
         disease: isMpox ? "Mpox Clade Ib" : isAvian ? "Avian Influenza (H5N1)" : "Acute Febrile Illness / Bio-Anomaly",
         pathogen: isMpox ? "Monkeypox virus" : isAvian ? "Influenza A H5N1" : "Unidentified Biological Agent",
-        country: textInput.toLowerCase().includes("batam") ? "Indonesia" : textInput.toLowerCase().includes("vietnam") ? "Vietnam" : "Kawasan ASEAN",
-        location: textInput.toLowerCase().includes("batam") ? "Pelabuhan Batam" : "Pos Perbatasan Regional",
+        country: textInput.toLowerCase().includes("batam") ? "Indonesia" : textInput.toLowerCase().includes("vietnam") ? "Vietnam" : "ASEAN Region",
+        location: textInput.toLowerCase().includes("batam") ? "Batam Seaport" : "Regional Border Post",
         source: "AI NLP Multilingual Extractor",
-        timestamp: "Baru saja",
+        timestamp: "Just now",
         threatLevel: isMpox ? "High Alert" : "Alert",
         confidenceScore: 97.5,
         snippet: textInput.length > 100 ? textInput.substring(0, 100) + "..." : textInput,
@@ -94,14 +94,14 @@ export default function NlpAnalyzeModal({
               <BrainCircuit className="w-5 h-5 text-[#fed889]" />
             </div>
             <div>
-              <h2 className="text-sm font-extrabold leading-tight">Deteksi &amp; Analisis Teks NLP</h2>
+              <h2 className="text-sm font-extrabold leading-tight">NLP Text Detection &amp; Analysis</h2>
               <p className="text-[11px] text-[#b6ccff]">Disease Surveillance AI • ABVC Portal</p>
             </div>
           </div>
           <button
             onClick={onClose}
             className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-colors"
-            aria-label="Tutup modal"
+            aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
@@ -113,7 +113,7 @@ export default function NlpAnalyzeModal({
           {/* Preset Samples */}
           <div>
             <span className="block text-[11px] font-bold text-[#191c1e] mb-1.5">
-              Pilih Contoh Teks / Berita Rumor:
+              Select Sample Text / Outbreak Rumor:
             </span>
             <div className="flex flex-wrap gap-1.5">
               {sampleTexts.map((sample, idx) => (
@@ -135,13 +135,13 @@ export default function NlpAnalyzeModal({
           {/* Text Input Area */}
           <div>
             <label className="block text-[11px] font-bold text-[#191c1e] mb-1">
-              Masukkan Teks Berita / Laporan Gejala Lapangan:
+              Enter News Article Text / Field Symptom Report:
             </label>
             <textarea
               rows={4}
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
-              placeholder="Ketik atau tempelkan teks berita, rumor wabah, atau catatan klinis dalam Bahasa Indonesia, Melayu, Vietnam, Thailand, atau Inggris..."
+              placeholder="Type or paste news text, outbreak rumors, or clinical notes in English, Indonesian, Malay, Vietnamese, or Thai..."
               className="w-full p-3 rounded-2xl bg-[#f8f9fc] border border-[#E2E8F0] text-xs text-[#191c1e] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#003396] transition-all resize-none font-medium leading-relaxed"
             />
           </div>
@@ -156,12 +156,12 @@ export default function NlpAnalyzeModal({
             {isAnalyzing ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Menganalisis Entitas Penyakit &amp; Spasial...</span>
+                <span>Analyzing Disease Entities &amp; Spatial Locations...</span>
               </>
             ) : (
               <>
                 <Sparkles className="w-4 h-4 text-[#fed889]" />
-                <span>Jalankan Ekstraksi NLP AI</span>
+                <span>Run AI NLP Extraction</span>
               </>
             )}
           </button>
@@ -172,28 +172,28 @@ export default function NlpAnalyzeModal({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-emerald-800 font-bold text-xs">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>Entitas Patogen Berhasil Diekstraksi</span>
+                  <span>Pathogen Entities Successfully Extracted</span>
                 </div>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-200/80 text-emerald-900 font-extrabold text-[10px]">
-                  Skor: {analysisResult.confidenceScore}%
+                  Score: {analysisResult.confidenceScore}%
                 </span>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-[11px]">
                 <div className="bg-white p-2 rounded-xl border border-emerald-100">
-                  <span className="text-slate-400 block text-[10px]">Penyakit Terdeteksi:</span>
+                  <span className="text-slate-400 block text-[10px]">Detected Disease:</span>
                   <span className="font-bold text-[#003396]">{analysisResult.disease}</span>
                 </div>
                 <div className="bg-white p-2 rounded-xl border border-emerald-100">
-                  <span className="text-slate-400 block text-[10px]">Tingkat Ancaman:</span>
+                  <span className="text-slate-400 block text-[10px]">Threat Level:</span>
                   <span className="font-bold text-[#E60012]">{analysisResult.threatLevel}</span>
                 </div>
                 <div className="bg-white p-2 rounded-xl border border-emerald-100">
-                  <span className="text-slate-400 block text-[10px]">Lokasi Spasial:</span>
+                  <span className="text-slate-400 block text-[10px]">Spatial Location:</span>
                   <span className="font-bold text-slate-800">{analysisResult.location}</span>
                 </div>
                 <div className="bg-white p-2 rounded-xl border border-emerald-100">
-                  <span className="text-slate-400 block text-[10px]">Negara:</span>
+                  <span className="text-slate-400 block text-[10px]">Country:</span>
                   <span className="font-bold text-slate-800">{analysisResult.country}</span>
                 </div>
               </div>
@@ -203,7 +203,7 @@ export default function NlpAnalyzeModal({
                 onClick={handleSaveToFeed}
                 className="w-full mt-2 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-full shadow transition-all flex items-center justify-center gap-1.5"
               >
-                <span>Simpan Sinyal ke Database Surveilans</span>
+                <span>Save Signal to Surveillance Feed</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>

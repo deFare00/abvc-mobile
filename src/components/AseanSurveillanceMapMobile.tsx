@@ -513,14 +513,14 @@ export default function AseanSurveillanceMapMobile({
                 {selectedMarker.severity && (
                   <span
                     className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase ${
-                      selectedMarker.severity === "AWAS"
+                      selectedMarker.severity === "AWAS" || selectedMarker.severity === "TINGGI"
                         ? "bg-red-500 text-white"
                         : selectedMarker.severity === "SIAGA"
                         ? "bg-amber-500 text-white"
                         : "bg-blue-50 text-blue-700"
                     }`}
                   >
-                    {selectedMarker.severity}
+                    {selectedMarker.severity === "AWAS" || selectedMarker.severity === "TINGGI" ? "HIGH ALERT" : selectedMarker.severity === "SIAGA" || selectedMarker.severity === "SEDANG" ? "WARNING" : selectedMarker.severity === "WASPADA" ? "ALERT" : selectedMarker.severity}
                   </span>
                 )}
               </div>

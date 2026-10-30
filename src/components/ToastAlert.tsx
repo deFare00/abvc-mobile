@@ -53,7 +53,7 @@ export default function ToastAlert({ message, type, onClose }: ToastAlertProps) 
         type="button"
         onClick={onClose}
         className="p-1 hover:bg-black/10 rounded-full transition-colors"
-        aria-label="Tutup notifikasi"
+        aria-label="Close notification"
       >
         <X className="w-4 h-4 opacity-70 hover:opacity-100" />
       </button>

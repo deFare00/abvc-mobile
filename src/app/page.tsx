@@ -42,22 +42,22 @@ export default function App() {
     e.preventDefault();
 
     if (!username.trim()) {
-      showToast("Harap masukkan Surveillance ID atau NIP Anda.", "warning");
+      showToast("Please enter your Surveillance ID or Officer ID.", "warning");
       return;
     }
 
     if (!password.trim()) {
-      showToast("Harap masukkan Kata Sandi Otorisasi Anda.", "warning");
+      showToast("Please enter your Authorization Password.", "warning");
       return;
     }
 
     if (!securityCode.trim()) {
-      showToast("Harap masukkan 5 digit Kode Keamanan (Captcha).", "warning");
+      showToast("Please enter the 5-digit Security Code (Captcha).", "warning");
       return;
     }
 
     if (securityCode.trim().toUpperCase() !== currentCaptcha.toUpperCase()) {
-      showToast("Kode Keamanan tidak sesuai! Silakan periksa kembali.", "error");
+      showToast("Security code does not match! Please verify.", "error");
       return;
     }
 
@@ -66,7 +66,7 @@ export default function App() {
       setIsLoading(false);
       setIsLoggedIn(true);
       setShowLogin(false);
-      showToast("Otorisasi berhasil! Selamat datang di Modul EBS.", "success");
+      showToast("Authorization successful! Welcome to EBS Portal.", "success");
       try {
         confetti({
           particleCount: 75,
@@ -138,10 +138,10 @@ export default function App() {
               className="inline-flex items-center gap-1.5 text-xs font-bold text-[#003396] hover:bg-[#d8e2ff]/50 px-3 py-1.5 rounded-full border border-[#003396]/20 transition-all bg-white/70 shadow-xs"
             >
               <ChevronLeft className="w-4 h-4" />
-              <span>Kembali ke Beranda</span>
+              <span>Back to Home</span>
             </button>
             <span className="text-[10px] font-black text-[#737784] uppercase tracking-wider">
-              Otorisasi Petugas
+              Officer Authorization
             </span>
           </div>
 
@@ -157,7 +157,7 @@ export default function App() {
                 Surveillance Centre
               </h1>
               <p className="text-[10px] sm:text-[10.5px] font-bold tracking-wider text-[#737784] uppercase">
-                PORTAL OTORISASI SURVEILANS REGIONAL
+                REGIONAL SURVEILLANCE AUTHORIZATION PORTAL
               </p>
             </div>
 
@@ -166,14 +166,14 @@ export default function App() {
               <form onSubmit={handleLogin} className="w-full space-y-3">
                 <div className="space-y-1">
                   <label className="block text-[11px] font-bold text-[#424752] uppercase tracking-wider pl-2">
-                    Surveillance ID / NIP
+                    Surveillance ID / Officer ID
                   </label>
                   <div className="relative">
                     <input
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Masukkan ID Petugas / NIP"
+                      placeholder="Enter Officer ID / Badge Number"
                       autoComplete="username"
                       className="w-full h-11 px-5 rounded-full bg-[#f8f9fc] border border-[#E2E8F0] text-sm text-[#191c1e] font-semibold placeholder:text-[#737784] shadow-inner transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#003396] focus:border-transparent"
                     />
@@ -182,14 +182,14 @@ export default function App() {
 
                 <div className="space-y-1">
                   <label className="block text-[11px] font-bold text-[#424752] uppercase tracking-wider pl-2">
-                    Kata Sandi
+                    Password
                   </label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Masukkan Kata Sandi"
+                      placeholder="Enter Password"
                       autoComplete="current-password"
                       className="w-full h-11 px-5 pr-12 rounded-full bg-[#f8f9fc] border border-[#E2E8F0] text-sm text-[#191c1e] font-semibold placeholder:text-[#737784] tracking-widest focus:tracking-normal shadow-inner transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#003396] focus:border-transparent"
                     />
@@ -197,7 +197,7 @@ export default function App() {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-[#737784] hover:text-[#003396] p-1 transition-colors"
-                      aria-label={showPassword ? "Sembunyikan sandi" : "Tampilkan sandi"}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -206,7 +206,7 @@ export default function App() {
 
                 <div className="space-y-1 pt-0.5">
                   <label className="block text-[11px] font-bold text-[#424752] uppercase tracking-wider pl-2">
-                    Verifikasi Keamanan
+                    Security Verification
                   </label>
                   <div className="flex items-center gap-2">
                     <div className="flex-shrink-0">
@@ -218,7 +218,7 @@ export default function App() {
                         maxLength={6}
                         value={securityCode}
                         onChange={(e) => setSecurityCode(e.target.value.toUpperCase())}
-                        placeholder="KODE CAPTCHA"
+                        placeholder="CAPTCHA CODE"
                         className="w-full h-11 px-3 rounded-full bg-[#f8f9fc] border border-[#E2E8F0] text-xs font-black tracking-widest text-[#003396] uppercase placeholder:text-[#737784] placeholder:font-bold placeholder:tracking-wider placeholder:text-[10px] shadow-inner text-center focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#003396] focus:border-transparent transition-all"
                       />
                     </div>
@@ -238,7 +238,7 @@ export default function App() {
                       {rememberMe && <Check className="w-3 h-3 stroke-[3]" />}
                     </div>
                     <span className="text-[11.5px] group-hover:text-[#003396] transition-colors">
-                      Ingat Saya
+                      Remember Me
                     </span>
                   </label>
 
@@ -247,7 +247,7 @@ export default function App() {
                     onClick={() => setIsForgotOpen(true)}
                     className="text-[11.5px] text-[#003396] hover:underline font-semibold transition-colors"
                   >
-                    Lupa kata sandi?
+                    Forgot password?
                   </button>
                 </div>
 
@@ -259,10 +259,10 @@ export default function App() {
                   {isLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Memverifikasi Otorisasi...</span>
+                      <span>Verifying Authorization...</span>
                     </>
                   ) : (
-                    <span>Masuk Portal EBS</span>
+                    <span>Sign In to Portal</span>
                   )}
                 </button>
 
@@ -273,7 +273,7 @@ export default function App() {
                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#003396] hover:text-[#002266] hover:underline transition-colors"
                   >
                     <HelpCircle className="w-3.5 h-3.5 text-[#003396]" />
-                    <span>Panduan Pengguna &amp; SOP</span>
+                    <span>User Guide &amp; SOP</span>
                   </button>
                 </div>
 
@@ -282,10 +282,10 @@ export default function App() {
                     type="button"
                     onClick={handleFillDemo}
                     className="inline-flex items-center gap-1 text-[11px] text-[#755a17] hover:text-[#410000] font-medium bg-[#fed889]/30 hover:bg-[#fed889]/60 px-3 py-1 rounded-full border border-[#C1A74F]/50 transition-all"
-                    title="Klik untuk mengisi data uji coba ABVC secara instan"
+                    title="Click to autofill ABVC demo credentials"
                   >
                     <Sparkles className="w-3 h-3 text-[#C1A74F]" />
-                    <span>Isi Otomatis Akun Demo ABVC</span>
+                    <span>Autofill ABVC Demo Account</span>
                   </button>
                 </div>
               </form>

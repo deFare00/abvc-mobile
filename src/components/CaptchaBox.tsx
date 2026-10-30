@@ -130,7 +130,7 @@ export default function CaptchaBox({ onCodeChange, disabled }: CaptchaBoxProps) 
         onClick={refreshCaptcha}
         disabled={disabled}
         className="ml-1 p-1.5 text-[#003c87] hover:text-[#0052b4] hover:bg-white/80 rounded-full transition-colors active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#003c87]/30"
-        title="Ganti Kode Keamanan"
+        title="Refresh Security Code"
         aria-label="Refresh Captcha"
       >
         <RefreshCw

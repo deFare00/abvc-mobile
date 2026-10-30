@@ -6,32 +6,32 @@ import { Layers, ShieldAlert, AlertTriangle, CheckCircle, Info } from "lucide-re
 export default function RiskMatrixView() {
   const categories = [
     {
-      level: "Tingkat 4 - Krisis Biologis (Crisis)",
+      level: "Level 4 - Biological Crisis",
       color: "bg-[#850001] text-white",
       borderColor: "border-[#850001]",
       items: ["Ebola / Marburg Viral Hemorrhagic", "Weaponized / Unknown Biological Agent"],
-      action: "Aktivasi Protokol Karantina Total & Respon Darurat ASEAN BSL-4",
+      action: "Activate Total Quarantine & ASEAN BSL-4 Emergency Response Protocol",
     },
     {
-      level: "Tingkat 3 - Siaga Tinggi (High Alert)",
+      level: "Level 3 - High Alert",
       color: "bg-[#ba1a1a] text-white",
       borderColor: "border-[#ba1a1a]",
       items: ["Mpox Clade Ib (Transmisi Lintas Batas)", "Avian Influenza H5N1 Kluster Manusia"],
-      action: "Skrining termal pelabuhan & isolasi pos perbatasan wajib aktif",
+      action: "Mandatory port thermal screening & border post isolation",
     },
     {
-      level: "Tingkat 2 - Waspada (Alert)",
+      level: "Level 2 - Alert",
       color: "bg-[#755a17] text-white",
       borderColor: "border-[#C1A74F]",
       items: ["Nipah Virus Animal Surveillance", "Kolera / Leptospirosis Kluster Pasca Banjir"],
-      action: "Peningkatan surveilans vektor & pelaporan harian faskes",
+      action: "Enhanced vector surveillance & daily healthcare facility reporting",
     },
     {
-      level: "Tingkat 1 - Pemantauan Rutin (Normal)",
+      level: "Level 1 - Routine Monitoring (Normal)",
       color: "bg-[#003396] text-white",
       borderColor: "border-[#003396]",
       items: ["Dengue DENV Musiman", "Influenza Musiman"],
-      action: "Pemantauan rutin scraping NLP berita media regional",
+      action: "Routine regional media scraping & NLP monitoring",
     },
   ];
 
@@ -44,12 +44,12 @@ export default function RiskMatrixView() {
             <Layers className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-extrabold text-[#003396]">Matriks Penilaian Risiko</h2>
-            <p className="text-[11px] text-[#737784]">Standar Klasifikasi Ancaman Biologis ABVC</p>
+            <h2 className="text-base font-extrabold text-[#003396]">Risk Assessment Matrix</h2>
+            <p className="text-[11px] text-[#737784]">ABVC Biological Threat Classification Standard</p>
           </div>
         </div>
         <p className="text-xs text-[#424752] leading-relaxed pt-1">
-          Matriks ini memetakan tingkat keparahan dampak klinis dan probabilitas transmisi lintas batas regional di Asia Tenggara.
+          This matrix maps clinical impact severity and cross-border transmission probability across Southeast Asia.
         </p>
       </div>
 
@@ -67,7 +67,7 @@ export default function RiskMatrixView() {
 
             <div className="space-y-1.5 pt-1">
               <span className="text-[10px] font-bold text-[#737784] uppercase tracking-wider block">
-                Patogen &amp; Penyakit Terkait:
+                Associated Pathogens &amp; Diseases:
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {cat.items.map((item, i) => (
@@ -82,7 +82,7 @@ export default function RiskMatrixView() {
             </div>
 
             <div className="p-2.5 bg-[#f8f9fc] rounded-2xl border border-[#E2E8F0] text-[11px] text-[#424752]">
-              <span className="font-bold text-[#003396] block mb-0.5">SOP Respon:</span>
+              <span className="font-bold text-[#003396] block mb-0.5">Response SOP:</span>
               {cat.action}
             </div>
           </div>

@@ -56,7 +56,7 @@ export default function MapView({ signals }: MapViewProps = {}) {
   const [isWindActive, setIsWindActive] = useState(true);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [gfsStatus, setGfsStatus] = useState<"loading" | "ready" | "fallback">("loading");
-  const [gfsInfo, setGfsInfo] = useState<string>("Memuat data angin GFS...");
+  const [gfsInfo, setGfsInfo] = useState<string>("Loading GFS wind data...");
 
   // Grid Data Reference
   const gfsGridRef = useRef<GfsGridData | null>(null);
@@ -68,7 +68,7 @@ export default function MapView({ signals }: MapViewProps = {}) {
     async function loadGfsData() {
       try {
         setGfsStatus("loading");
-        setGfsInfo("Menghubungkan ke https://opsroom.sipongidata.my.id/api/gfs...");
+        setGfsInfo("Connecting to GFS wind service...");
 
         let res = await fetch("/mobile/api/gfs");
         if (!res.ok) {
@@ -113,13 +113,13 @@ export default function MapView({ signals }: MapViewProps = {}) {
           };
 
           setGfsStatus("ready");
-          setGfsInfo("Data GFS Sipongi Aktif (Grid 1°x1° Global GFS)");
+          setGfsInfo("Live Sipongi GFS Wind Layer Active (1°x1° Global Grid)");
         }
       } catch (err: any) {
         console.warn("GFS API fetch notice, using atmospheric model fallback:", err);
         if (isMounted) {
           setGfsStatus("fallback");
-          setGfsInfo("Model Angin Atmosferik Regional Aktif");
+          setGfsInfo("Regional Atmospheric Wind Model Active");
         }
       }
     }
@@ -411,7 +411,7 @@ export default function MapView({ signals }: MapViewProps = {}) {
           </div>
           <div>
             <h2 className="text-sm sm:text-base font-black text-[#003396] leading-tight">
-              Peta Arah Angin GFS Kawasan ASEAN
+              ASEAN GFS Wind Trajectory Map
             </h2>
             <p className="text-[10.5px] font-semibold text-[#737784] flex items-center gap-1.5 mt-0.5">
               <span className={`w-2 h-2 rounded-full ${gfsStatus === "ready" ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`}></span>
@@ -429,7 +429,7 @@ export default function MapView({ signals }: MapViewProps = {}) {
               ? "bg-emerald-50 text-emerald-800 border-emerald-300 shadow-xs font-extrabold"
               : "bg-[#f8f9fc] text-[#737784] border-[#E2E8F0]"
           }`}
-          title="Nyalakan / Matikan Lapisan Arah Angin GFS"
+          title="Toggle GFS Wind Trajectory Layer"
         >
           <Wind className="w-3.5 h-3.5" />
           <span>{isWindActive ? "GFS ON" : "GFS OFF"}</span>
@@ -455,7 +455,7 @@ export default function MapView({ signals }: MapViewProps = {}) {
         {selectedCountry && (
           <div className="absolute top-4 left-4 z-20 pointer-events-none animate-in fade-in slide-in-from-top-1 duration-150">
             <div className="px-3 py-1 bg-[#003396] text-white text-[11px] font-bold rounded-xl shadow-md border border-[#C1A74F]">
-              Negara: {selectedCountry}
+              Country: {selectedCountry}
             </div>
           </div>
         )}
@@ -466,7 +466,7 @@ export default function MapView({ signals }: MapViewProps = {}) {
             type="button"
             onClick={handleZoomIn}
             className="w-9 h-9 rounded-xl bg-white/95 backdrop-blur-md hover:bg-white text-[#003396] font-extrabold shadow-md border border-[#E2E8F0] flex items-center justify-center transition-transform active:scale-90"
-            title="Perbesar Peta (Zoom In)"
+            title="Zoom In"
             aria-label="Zoom In"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
@@ -476,7 +476,7 @@ export default function MapView({ signals }: MapViewProps = {}) {
             type="button"
             onClick={handleZoomOut}
             className="w-9 h-9 rounded-xl bg-white/95 backdrop-blur-md hover:bg-white text-[#003396] font-extrabold shadow-md border border-[#E2E8F0] flex items-center justify-center transition-transform active:scale-90"
-            title="Perkecil Peta (Zoom Out)"
+            title="Zoom Out"
             aria-label="Zoom Out"
           >
             <Minus className="w-4 h-4 stroke-[2.5]" />
@@ -486,7 +486,7 @@ export default function MapView({ signals }: MapViewProps = {}) {
             type="button"
             onClick={handleResetAseanView}
             className="w-9 h-9 rounded-xl bg-[#003396] text-white hover:bg-[#002266] font-bold shadow-md border border-[#C1A74F]/50 flex items-center justify-center transition-transform active:scale-90"
-            title="Pusatkan ke Kawasan ASEAN"
+            title="Reset ASEAN View"
             aria-label="Reset ASEAN View"
           >
             <RotateCcw className="w-4 h-4" />

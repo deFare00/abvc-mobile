@@ -1,0 +1,16 @@
+services:
+  abvc-mobile:
+    container_name: abvc-mobile
+    image: abvc-mobile:latest
+    env_file:
+      - .env
+    build: .
+    environment:
+      NODE_ENV: production
+    restart: unless-stopped
+    networks:
+      - proxynet
+
+networks:
+  proxynet:
+    external: true

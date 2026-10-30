@@ -24,6 +24,9 @@ import {
   SlidersHorizontal,
   Table,
   Skull,
+  MessageSquare,
+  Briefcase,
+  Percent,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -120,6 +123,23 @@ const DEFAULT_DISEASE_LIST = [
   "Yellow Fever",
   "Zika Virus Infection",
 ];
+
+function buildSparklinePath(values: number[], width = 100, height = 30): string {
+  if (!values.length || values.every((v) => v === 0)) {
+    return `M 0,${height - 3} L ${width},${height - 3}`;
+  }
+  const max = Math.max(...values, 0);
+  const min = Math.min(...values, 0);
+  const range = max - min || 1;
+  const step = width / Math.max(1, values.length - 1);
+  return values
+    .map((val, idx) => {
+      const x = (idx * step).toFixed(1);
+      const y = (height - 4 - ((val - min) / range) * (height - 8)).toFixed(1);
+      return `${idx === 0 ? "M" : "L"} ${x},${y}`;
+    })
+    .join(" ");
+}
 
 function sameCountry(a: string, b: string): boolean {
   if (!a || !b) return false;

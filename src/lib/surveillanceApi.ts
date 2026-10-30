@@ -194,28 +194,58 @@ export interface SurveillanceFilterParams {
   endYear?: number;
 }
 
+export interface KpiSnapshotData {
+  kpis: {
+    active_alerts?: number;
+    active_locations?: number;
+    cases?: number;
+    cases_reviewed?: number;
+    cases_unreviewed?: number;
+    deaths?: number;
+    deaths_reviewed?: number;
+    deaths_unreviewed?: number;
+    events?: number;
+    events_reviewed?: number;
+    events_unreviewed?: number;
+    locations?: number;
+    locations_mapped?: number;
+    snapshot_computed_at?: string;
+    snapshot_stale?: boolean;
+  };
+}
+
 const API_BASE = "/mobile";
+
+// Helper: build standard query params for EBS & related endpoints
+export function buildEbsQueryParams(params?: SurveillanceFilterParams): URLSearchParams {
+  const q = new URLSearchParams();
+  const ctry = params?.country || params?.region;
+  const country = !ctry || ctry === "all" ? "ASEAN" : ctry;
+  q.set("country", country);
+  if (country === "ASEAN" || country === "all") {
+    q.set("scope", "asean11");
+  }
+  if (params?.diseases && params.diseases.length > 0) {
+    if (params.diseases.length === 1) {
+      q.set("disease", params.diseases[0]);
+    } else {
+      q.set("diseases", params.diseases.join(","));
+    }
+  } else if (params?.disease && params.disease !== "all") {
+    q.set("disease", params.disease);
+  }
+  if (params?.countries && params.countries.length > 0) {
+    q.set("countries", params.countries.join(","));
+  }
+  if (params?.startDate) q.set("start_date", params.startDate);
+  if (params?.endDate) q.set("end_date", params.endDate);
+  return q;
+}
 
 // 1. Fetch EBS Public Dashboard with Filter Parameters
 export async function getEbsDashboard(params?: SurveillanceFilterParams): Promise<EbsDashboardData | null> {
   try {
-    const q = new URLSearchParams();
-    if (params?.region) {
-      q.set("country", params.region);
-    } else {
-      q.set("country", "ASEAN");
-    }
-    if (params?.diseases && params.diseases.length > 0) {
-      q.set("diseases", params.diseases.join(","));
-    } else if (params?.disease && params.disease !== "all") {
-      q.set("disease", params.disease);
-    }
-    if (params?.countries && params.countries.length > 0) {
-      q.set("countries", params.countries.join(","));
-    }
-    if (params?.startDate) q.set("start_date", params.startDate);
-    if (params?.endDate) q.set("end_date", params.endDate);
-
+    const q = buildEbsQueryParams(params);
     const queryString = q.toString();
     const res = await fetch(`${API_BASE}/api/v1/public-dashboard${queryString ? `?${queryString}` : ""}`, {
       cache: "no-store",
@@ -229,27 +259,59 @@ export async function getEbsDashboard(params?: SurveillanceFilterParams): Promis
   }
 }
 
-// 2. Fetch IBS Surveillance with Filter Parameters
+// 1b. Fetch KPI Snapshot (Materialized & Filter-Synchronized with NLP)
+export async function getKpiSnapshot(params?: SurveillanceFilterParams): Promise<KpiSnapshotData | null> {
+  try {
+    const q = buildEbsQueryParams(params);
+    const queryString = q.toString();
+    const res = await fetch(`${API_BASE}/api/v1/kpi-snapshot${queryString ? `?${queryString}` : ""}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    return json.data || json;
+  } catch (err) {
+    console.error("Failed to fetch KPI snapshot:", err);
+    return null;
+  }
+}
+
+// 2. Fetch IBS Surveillance with Filter Parameters (Synchronized with NLP Lite Dashboard)
 export async function getIbsSurveillance(params?: SurveillanceFilterParams): Promise<IbsDashboardData | null> {
   try {
     const q = new URLSearchParams();
-    if (params?.region) {
+    
+    // Country / Region handling
+    if (params?.countries && params.countries.length > 0) {
+      q.set("country", params.countries.join("|"));
+    } else if (params?.country && params.country !== "all") {
+      q.set("country", params.country);
+    } else if (params?.region && params.region !== "all") {
       q.set("country", params.region);
     } else {
       q.set("country", "ASEAN");
     }
+
+    // Disease handling: NLP IBS splits on "|" or single disease
     if (params?.diseases && params.diseases.length > 0) {
-      q.set("diseases", params.diseases.join(","));
+      if (params.diseases.length === 1) {
+        q.set("disease", params.diseases[0]);
+      } else {
+        q.set("disease", params.diseases.join("|"));
+      }
     } else if (params?.disease && params.disease !== "all") {
       q.set("disease", params.disease);
     }
-    if (params?.countries && params.countries.length > 0) {
-      q.set("countries", params.countries.join(","));
-    }
+
     if (params?.startWeek) q.set("start_week", String(params.startWeek));
     if (params?.endWeek) q.set("end_week", String(params.endWeek));
     if (params?.startYear) q.set("start_year", String(params.startYear));
-    if (params?.endYear) q.set("end_year", String(params.endYear));
+    if (params?.endYear) {
+      q.set("end_year", String(params.endYear));
+      q.set("year", String(params.endYear));
+    } else {
+      q.set("year", "2026");
+    }
 
     const queryString = q.toString();
     const res = await fetch(`${API_BASE}/api/v1/ibs/surveillance${queryString ? `?${queryString}` : ""}`, {
@@ -486,19 +548,7 @@ export async function getDiseaseTrendOverview(
   params?: SurveillanceFilterParams
 ): Promise<DiseaseTrendOverviewData | null> {
   try {
-    const q = new URLSearchParams();
-    q.set("country", params?.region || "ASEAN");
-    if (params?.diseases && params.diseases.length > 0) {
-      q.set("diseases", params.diseases.join(","));
-    } else if (params?.disease && params.disease !== "all") {
-      q.set("disease", params.disease);
-    }
-    if (params?.countries && params.countries.length > 0) {
-      q.set("countries", params.countries.join(","));
-    }
-    if (params?.startDate) q.set("start_date", params.startDate);
-    if (params?.endDate) q.set("end_date", params.endDate);
-
+    const q = buildEbsQueryParams(params);
     const res = await fetch(`${API_BASE}/api/v1/disease-trend-overview?${q.toString()}`, {
       cache: "no-store",
     });
@@ -516,19 +566,7 @@ export async function getMorbidityMortality(
   params?: SurveillanceFilterParams
 ): Promise<MorbidityMortalityData | null> {
   try {
-    const q = new URLSearchParams();
-    q.set("country", params?.region || "ASEAN");
-    if (params?.diseases && params.diseases.length > 0) {
-      q.set("diseases", params.diseases.join(","));
-    } else if (params?.disease && params.disease !== "all") {
-      q.set("disease", params.disease);
-    }
-    if (params?.countries && params.countries.length > 0) {
-      q.set("countries", params.countries.join(","));
-    }
-    if (params?.startDate) q.set("start_date", params.startDate);
-    if (params?.endDate) q.set("end_date", params.endDate);
-
+    const q = buildEbsQueryParams(params);
     const res = await fetch(`${API_BASE}/api/v1/morbidity-mortality?${q.toString()}`, {
       cache: "no-store",
     });
@@ -546,19 +584,7 @@ export async function getSpatialHeatmap(
   params?: SurveillanceFilterParams
 ): Promise<SpatialHeatmapData | null> {
   try {
-    const q = new URLSearchParams();
-    q.set("country", params?.region || "ASEAN");
-    if (params?.diseases && params.diseases.length > 0) {
-      q.set("diseases", params.diseases.join(","));
-    } else if (params?.disease && params.disease !== "all") {
-      q.set("disease", params.disease);
-    }
-    if (params?.countries && params.countries.length > 0) {
-      q.set("countries", params.countries.join(","));
-    }
-    if (params?.startDate) q.set("start_date", params.startDate);
-    if (params?.endDate) q.set("end_date", params.endDate);
-
+    const q = buildEbsQueryParams(params);
     const res = await fetch(`${API_BASE}/api/v1/spatial-heatmap?${q.toString()}`, {
       cache: "no-store",
     });
@@ -569,4 +595,65 @@ export async function getSpatialHeatmap(
     console.error("Failed to fetch spatial heatmap:", err);
     return null;
   }
+}
+
+// Helper: Distinct places count matching NLP placeCount(mapLocations)
+export function placeCount(locations?: Array<{ country?: string; location_name?: string }>): number {
+  if (!locations || locations.length === 0) return 0;
+  const set = new Set<string>();
+  for (const l of locations) {
+    const c = String(l?.country || "").trim().toLowerCase();
+    const n = String(l?.location_name || "").trim().toLowerCase().replace(/\s+/g, " ");
+    if (c || n) set.add(`${c}|${n}`);
+  }
+  return set.size;
+}
+
+// Helper: Compute previous period window and formatted labels matching NLP computePreviousPeriod
+export function computePreviousPeriod(startDateStr?: string | null, endDateStr?: string | null) {
+  if (!startDateStr || !endDateStr) {
+    const now = new Date();
+    const curStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const prevStart = new Date(curStart.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const startIso = prevStart.toISOString().slice(0, 10);
+    const endIso = curStart.toISOString().slice(0, 10);
+    return {
+      startIso,
+      endIso,
+      label: `Aug 30th, 2026 — Sep 30th, 2026`,
+    };
+  }
+
+  const [sY, sM, sD] = startDateStr.split("-").map(Number);
+  const curStart = new Date(Date.UTC(sY, sM - 1, sD));
+
+  const prevEndIso = startDateStr;
+  const prevStart = new Date(curStart.getTime());
+  prevStart.setUTCMonth(prevStart.getUTCMonth() - 1);
+  if (prevStart.getUTCDate() !== sD) {
+    prevStart.setUTCDate(0);
+  }
+  const prevStartIso = prevStart.toISOString().slice(0, 10);
+
+  const formatPart = (dStr: string) => {
+    const [y, m, d] = dStr.split("-").map(Number);
+    const date = new Date(Date.UTC(y, m - 1, d));
+    const month = date.toLocaleDateString("en-US", { month: "short", timeZone: "UTC" });
+    const suffix = (day: number) => {
+      if (day >= 11 && day <= 13) return "th";
+      switch (day % 10) {
+        case 1: return "st";
+        case 2: return "nd";
+        case 3: return "rd";
+        default: return "th";
+      }
+    };
+    return `${month} ${d}${suffix(d)}, ${y}`;
+  };
+
+  return {
+    startIso: prevStartIso,
+    endIso: prevEndIso,
+    label: `${formatPart(prevStartIso)} — ${formatPart(prevEndIso)}`,
+  };
 }

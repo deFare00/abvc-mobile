@@ -9,7 +9,7 @@ export default function ABVCLogo() {
       {/* Official ABVC Emblem Container */}
       <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full p-1.5 bg-white shadow-md ring-4 ring-[#003396]/10 border-2 border-[#C1A74F] flex items-center justify-center transition-all duration-300 hover:shadow-lg">
         <Image
-          src="/assets/images/icon_abvc.jpg"
+          src="/mobile/assets/images/icon_abvc.jpg"
           alt="ASEAN Biological Threats Surveillance Centre Logo"
           width={88}
           height={88}

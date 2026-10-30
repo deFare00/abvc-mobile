@@ -2,18 +2,20 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { ChevronDown, LogOut, ShieldCheck, User, Bell, Globe } from "lucide-react";
+import { ChevronDown, LogOut, ShieldCheck, User, Bell, Globe, LayoutGrid } from "lucide-react";
 import { UserProfile } from "@/types/surveillance";
 
 interface HeaderNavProps {
   user: UserProfile;
   onLogout: () => void;
+  onGoToPortalHome?: () => void;
   activeNotificationsCount?: number;
 }
 
 export default function HeaderNav({
   user,
   onLogout,
+  onGoToPortalHome,
   activeNotificationsCount = 3,
 }: HeaderNavProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -24,10 +26,14 @@ export default function HeaderNav({
       <div className="w-full px-4 py-3 sm:py-2.5 flex items-center justify-between">
         
         {/* Left: Branding & Emblem */}
-        <div className="flex items-center gap-2.5">
-          <div className="relative w-9 h-9 rounded-full bg-white p-0.5 shadow-sm border border-[#C1A74F]/60 flex-shrink-0 flex items-center justify-center">
+        <div
+          onClick={onGoToPortalHome}
+          className={`flex items-center gap-2.5 ${onGoToPortalHome ? "cursor-pointer group" : ""}`}
+          title={onGoToPortalHome ? "Kembali ke Beranda Utama (3 Modul)" : undefined}
+        >
+          <div className="relative w-9 h-9 rounded-full bg-white p-0.5 shadow-sm border border-[#C1A74F]/60 flex-shrink-0 flex items-center justify-center group-hover:scale-105 transition-transform">
             <Image
-              src="/assets/images/icon_abvc.jpg"
+              src="/mobile/assets/images/icon_abvc.jpg"
               alt="Logo ABVC"
               width={34}
               height={34}
@@ -83,7 +89,7 @@ export default function HeaderNav({
             >
               <div className="w-7 h-7 rounded-full bg-[#fed889] text-[#755a17] font-bold text-xs flex items-center justify-center overflow-hidden border border-white shadow-sm">
                 <Image
-                  src="/assets/images/icon_abvc.jpg"
+                  src="/mobile/assets/images/icon_abvc.jpg"
                   alt="User Avatar"
                   width={28}
                   height={28}
@@ -106,6 +112,19 @@ export default function HeaderNav({
                 </div>
 
                 <div className="py-1">
+                  {onGoToPortalHome && (
+                    <button
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        onGoToPortalHome();
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-[#003396] hover:bg-[#d8e2ff]/40 rounded-xl transition-colors text-left"
+                    >
+                      <LayoutGrid className="w-3.5 h-3.5 text-[#003396]" />
+                      <span>Beranda Portal (3 Modul)</span>
+                    </button>
+                  )}
+
                   <button
                     onClick={() => {
                       setIsDropdownOpen(false);

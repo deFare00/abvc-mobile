@@ -4,7 +4,7 @@ export const defaultUser: UserProfile = {
   name: "Dr. Hendra Wijaya",
   role: "SUPER ADMINISTRATOR",
   institution: "ASEAN Surveillance Centre",
-  avatarUrl: "/assets/images/icon_abvc.jpg",
+  avatarUrl: "/mobile/assets/images/icon_abvc.jpg",
   surveillanceId: "ABVC-EPID-99201",
   assignedRegion: "Southeast Asia Regional Desk",
 };

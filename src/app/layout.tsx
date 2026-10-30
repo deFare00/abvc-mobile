@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   title: "ASEAN Biological Threats Surveillance Centre (ABVC)",
   description: "Regional Epidemic & Biological Surveillance Portal • High-Stakes Healthcare & Biological Threat Monitoring",
   icons: {
-    icon: "/assets/images/icon_abvc.jpg",
+    icon: "/mobile/assets/images/icon_abvc.jpg",
   },
 };
 

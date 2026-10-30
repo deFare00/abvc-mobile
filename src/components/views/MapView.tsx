@@ -70,7 +70,10 @@ export default function MapView({ signals }: MapViewProps = {}) {
         setGfsStatus("loading");
         setGfsInfo("Menghubungkan ke https://opsroom.sipongidata.my.id/api/gfs...");
 
-        const res = await fetch("/api/gfs");
+        let res = await fetch("/mobile/api/gfs");
+        if (!res.ok) {
+          res = await fetch("/api/gfs");
+        }
         if (!res.ok) {
           throw new Error(`HTTP error: ${res.status}`);
         }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, KeyRound, Mail, CheckCircle2, ShieldAlert } from "lucide-react";
+import { X, KeyRound, Mail, CheckCircle2, AlertCircle, ShieldAlert } from "lucide-react";
 
 interface ForgotPasswordModalProps {
   isOpen: boolean;
@@ -48,14 +48,14 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
               <KeyRound className="w-5 h-5 text-[#C1A74F]" />
             </div>
             <div>
-              <h2 className="text-base font-bold leading-tight">Credential Recovery</h2>
+              <h2 className="text-base font-bold leading-tight">Pemulihan Kredensial</h2>
               <p className="text-xs text-[#b6ccff]">ASEAN ABVC Surveillance Officer</p>
             </div>
           </div>
           <button
             onClick={handleReset}
-            className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer"
-            aria-label="Close modal"
+            className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+            aria-label="Tutup modal"
           >
             <X className="w-5 h-5" />
           </button>
@@ -68,22 +68,22 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
               <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-7 h-7" />
               </div>
-              <h3 className="text-base font-bold text-[#191c1e]">Authorization Link Sent</h3>
+              <h3 className="text-base font-bold text-[#191c1e]">Tautan Otorisasi Terkirim</h3>
               <p className="text-xs text-[#424752] leading-relaxed">
-                A password reset token has been dispatched to official email <strong>{email}</strong> for Surveillance ID <strong>{officerId}</strong>.
+                Token reset kata sandi telah dikirimkan ke email kedinasan <strong>{email}</strong> untuk ID Petugas <strong>{officerId}</strong>.
               </p>
               <button
                 type="button"
                 onClick={handleReset}
-                className="mt-4 px-6 py-2.5 bg-[#003396] text-white font-semibold text-xs rounded-full shadow hover:bg-[#002b66] transition-all cursor-pointer"
+                className="mt-4 px-6 py-2.5 bg-[#003396] text-white font-semibold text-xs rounded-full shadow hover:bg-[#002b66] transition-all"
               >
-                Return to Sign In
+                Kembali ke Halaman Masuk
               </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <p className="text-xs text-[#424752] leading-relaxed">
-                Enter your registered Surveillance Officer ID and official institutional email on the ABVC Regional Registry.
+                Masukkan ID Petugas Surveilans dan email kedinasan terdaftar pada ABVC Regional Registry.
               </p>
 
               <div>
@@ -95,14 +95,14 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
                   required
                   value={officerId}
                   onChange={(e) => setOfficerId(e.target.value)}
-                  placeholder="e.g. officer.asean / ABVC-ID-89240"
+                  placeholder="Contoh: ABVC-ID-89240"
                   className="w-full px-4 py-2.5 rounded-full bg-[#f8f9fc] border border-[#E2E8F0] text-xs text-[#191c1e] focus:outline-none focus:ring-2 focus:ring-[#003396]"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-[#191c1e] mb-1">
-                  Official Email Address
+                  Email Dinas Resmi
                 </label>
                 <div className="relative">
                   <input
@@ -110,7 +110,7 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="officer@health.gov / @asean-abvc.org"
+                    placeholder="officer@kemkes.go.id / @asean-abvc.org"
                     className="w-full px-4 py-2.5 pl-9 rounded-full bg-[#f8f9fc] border border-[#E2E8F0] text-xs text-[#191c1e] focus:outline-none focus:ring-2 focus:ring-[#003396]"
                   />
                   <Mail className="w-4 h-4 text-[#737784] absolute left-3 top-3" />
@@ -120,7 +120,7 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
               <div className="flex items-start gap-2 p-2.5 bg-[#f8f9fc] rounded-lg border border-[#E2E8F0] text-[11px] text-[#737784]">
                 <ShieldAlert className="w-4 h-4 text-[#C1A74F] flex-shrink-0 mt-0.5" />
                 <span>
-                  Access to regional biological surveillance modules is strictly audited under ASEAN data governance protocols.
+                  Akses modul surveilans biologis dipantau ketat di bawah protokol kerahasiaan data kesehatan regional ASEAN.
                 </span>
               </div>
 
@@ -128,16 +128,16 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="px-4 py-2 text-xs font-medium text-[#424752] hover:bg-[#f2f4f6] rounded-full transition-colors cursor-pointer"
+                  className="px-4 py-2 text-xs font-medium text-[#424752] hover:bg-[#f2f4f6] rounded-full transition-colors"
                 >
-                  Cancel
+                  Batal
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-5 py-2 text-xs font-semibold text-white bg-[#003396] hover:bg-[#002b66] rounded-full shadow transition-all disabled:opacity-50 cursor-pointer"
+                  className="px-5 py-2 text-xs font-semibold text-white bg-[#003396] hover:bg-[#002b66] rounded-full shadow transition-all disabled:opacity-50"
                 >
-                  {loading ? "Processing..." : "Send Reset Token"}
+                  {loading ? "Memproses..." : "Kirim Token Reset"}
                 </button>
               </div>
             </form>

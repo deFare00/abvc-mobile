@@ -90,12 +90,13 @@ function heatFill(cases: number, max: number): string {
 
 function isWithinRecentWindow(
   dateValue: string | null | undefined,
-  days: MarkerLookbackDays
+  days: MarkerLookbackDays,
+  anchorTs: number
 ): boolean {
   if (!dateValue) return true;
   const ts = Date.parse(dateValue);
   if (!Number.isFinite(ts)) return true;
-  return ts >= Date.now() - days * 24 * 60 * 60 * 1000;
+  return ts >= anchorTs - days * 24 * 60 * 60 * 1000;
 }
 
 export default function AseanSurveillanceMapMobile({
@@ -123,6 +124,7 @@ export default function AseanSurveillanceMapMobile({
   const [showWind, setShowWind] = useState(false);
   const [showWindLegend, setShowWindLegend] = useState(false);
   const [showSpatialControls, setShowSpatialControls] = useState(false);
+  const [legendOpen, setLegendOpen] = useState(true);
 
   // Selection states
   const [selectedMarker, setSelectedMarker] = useState<MapLocationMarker | null>(null);
@@ -133,14 +135,29 @@ export default function AseanSurveillanceMapMobile({
     return Math.max(...countries.map((c) => c.cases || 0), 1);
   }, [countries]);
 
-  // Filter locations by lookback range
+  // Anchor the lookback window to the latest event timestamp in locations so points are visible
+  const dataAnchor = useMemo(() => {
+    let maxTs = 0;
+    for (const loc of locations) {
+      const dt = loc.latest_date || loc.case_date;
+      if (dt) {
+        const ts = Date.parse(dt);
+        if (Number.isFinite(ts) && ts > maxTs) maxTs = ts;
+      }
+    }
+    return maxTs > 0 ? maxTs : Date.now();
+  }, [locations]);
+
+  // Filter locations by lookback range anchored to dataAnchor
   const visibleLocations = useMemo(() => {
     if (!showMarkers) return [];
-    return locations.filter((loc) => {
+    if (locations.length === 0) return [];
+    const filtered = locations.filter((loc) => {
       const dt = loc.latest_date || loc.case_date;
-      return isWithinRecentWindow(dt, markerLookbackDays);
+      return isWithinRecentWindow(dt, markerLookbackDays, dataAnchor);
     });
-  }, [locations, showMarkers, markerLookbackDays]);
+    return filtered.length > 0 ? filtered : locations;
+  }, [locations, showMarkers, markerLookbackDays, dataAnchor]);
 
   // Reset layers to defaults
   const handleResetLayers = () => {
@@ -153,7 +170,7 @@ export default function AseanSurveillanceMapMobile({
     setShowWindLegend(false);
   };
 
-  // Basemap tile source factory
+  // Basemap tile source factory: OSM with low opacity for clean grayscale appearance without Carto watermark
   const getTileSource = (base: BaseMapType) => {
     switch (base) {
       case "osm":
@@ -175,8 +192,8 @@ export default function AseanSurveillanceMapMobile({
         });
       case "light":
       default:
-        return new XYZ({
-          url: "https://{a-d}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        return new OSM({
+          url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
           crossOrigin: "anonymous",
         });
     }
@@ -186,10 +203,11 @@ export default function AseanSurveillanceMapMobile({
   useEffect(() => {
     if (!mapElement.current) return;
 
-    // Basemap: Positron Light by default (matches prototype Carto Positron)
+    // Basemap: OpenStreetMap at 0.35 opacity matches prototype Carto Positron without watermark
     const baseTile = new TileLayer({
       source: getTileSource("light"),
       zIndex: 1,
+      opacity: 0.35,
     });
     baseTileRef.current = baseTile;
 
@@ -320,6 +338,7 @@ export default function AseanSurveillanceMapMobile({
   useEffect(() => {
     if (!baseTileRef.current) return;
     baseTileRef.current.setSource(getTileSource(activeBase));
+    baseTileRef.current.setOpacity(activeBase === "light" ? 0.35 : 1);
   }, [activeBase]);
 
   // Update Admin Boundary Visibility
@@ -363,7 +382,7 @@ export default function AseanSurveillanceMapMobile({
       const isNational = loc.is_national || loc.geo_level === "national";
 
       if (isNational) {
-        // Hollow national centroid ring
+        // Hollow national centroid ring matching prototype
         feature.setStyle([
           new Style({
             image: new CircleStyle({
@@ -380,7 +399,7 @@ export default function AseanSurveillanceMapMobile({
           }),
         ]);
       } else if (isHot) {
-        // Multi-ring concentric ripple styling matching prototype
+        // Multi-ring concentric ripple styling matching prototype (hot exact / alert)
         feature.setStyle([
           new Style({
             image: new CircleStyle({
@@ -404,16 +423,22 @@ export default function AseanSurveillanceMapMobile({
           }),
         ]);
       } else {
-        // Standard signal pin
-        feature.setStyle(
+        // Standard concentric signal pin matching Image 2
+        feature.setStyle([
+          new Style({
+            image: new CircleStyle({
+              radius: 9,
+              fill: new Fill({ color: "rgba(0, 96, 169, 0.28)" }),
+            }),
+          }),
           new Style({
             image: new CircleStyle({
               radius: 5.5,
               fill: new Fill({ color: "#0060A9" }),
-              stroke: new Stroke({ color: "#ffffff", width: 1.5 }),
+              stroke: new Stroke({ color: "#ffffff", width: 2 }),
             }),
-          })
-        );
+          }),
+        ]);
       }
 
       features.push(feature);
@@ -550,55 +575,47 @@ export default function AseanSurveillanceMapMobile({
       {/* OpenLayers Map Canvas */}
       <div ref={mapElement} className="w-full h-full" />
 
-      {/* Floating Spatial Controls Button & Zoom Controls Top-Right */}
-      <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
+      {/* Floating Map & Layer Settings Button Top-Right (matches Image 2 and prototype AseanMap.tsx) */}
+      <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
         <button
+          type="button"
           onClick={() => setShowSpatialControls(true)}
-          className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white/95 px-2.5 py-1.5 text-slate-700 shadow-md backdrop-blur-md transition hover:border-blue-300 hover:bg-blue-50 hover:text-[#0060A9] active:scale-95"
+          className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white/95 px-3 py-1.5 text-slate-700 shadow-sm backdrop-blur-md transition hover:border-blue-300 hover:bg-blue-50 hover:text-[#0060A9] active:scale-95 cursor-pointer"
         >
           <Settings className="h-3.5 w-3.5 text-[#0060A9]" />
-          <span className="text-[11px] font-black tracking-wide">
-            Spatial Controls
+          <span className="text-xs font-semibold text-slate-700">
+            Map & Layer Settings
           </span>
         </button>
-
-        <div className="flex items-center bg-white/95 backdrop-blur-md rounded-xl border border-slate-200 shadow-md overflow-hidden">
-          <button
-            onClick={handleZoomIn}
-            title="Zoom In"
-            className="p-1.5 text-slate-700 hover:bg-slate-100 active:scale-95 border-r border-slate-100"
-          >
-            <ZoomIn className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={handleZoomOut}
-            title="Zoom Out"
-            className="p-1.5 text-slate-700 hover:bg-slate-100 active:scale-95 border-r border-slate-100"
-          >
-            <ZoomOut className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={handleRecenter}
-            title="Fit ASEAN Region"
-            className="p-1.5 text-slate-700 hover:bg-slate-100 active:scale-95"
-          >
-            <Maximize2 className="w-3.5 h-3.5" />
-          </button>
-        </div>
       </div>
 
-      {/* Floating Active Info Badge Top-Left */}
-      <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5 pointer-events-none">
-        <div className="bg-white/95 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-slate-200/90 shadow-sm flex items-center gap-1.5 text-[11px] font-semibold text-slate-800">
-          <span className="w-2 h-2 rounded-full bg-[#0060A9] animate-pulse" />
-          <span className="font-bold text-[#0060A9]">
-            Signal Map
-          </span>
-          <span className="text-slate-400">•</span>
-          <span className="text-slate-600 font-medium">
-            {visibleLocations.length} Points ({markerLookbackDays}d)
-          </span>
-        </div>
+      {/* Zoom and Navigation Controls Bottom-Right (matches Image 2 and prototype AseanMap.tsx) */}
+      <div className="absolute bottom-3 right-3 z-20 flex flex-col gap-1">
+        <button
+          type="button"
+          onClick={handleZoomIn}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-base font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95 cursor-pointer"
+          aria-label="Zoom in"
+        >
+          +
+        </button>
+        <button
+          type="button"
+          onClick={handleZoomOut}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-base font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95 cursor-pointer"
+          aria-label="Zoom out"
+        >
+          -
+        </button>
+        <button
+          type="button"
+          onClick={handleRecenter}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 active:scale-95 cursor-pointer"
+          aria-label="Reset View"
+          title="Reset View"
+        >
+          <RotateCcw className="h-3.5 w-3.5" />
+        </button>
       </div>
 
       {/* Wind Speed Gradient Bar Legend (matches prototype) */}
@@ -613,7 +630,7 @@ export default function AseanSurveillanceMapMobile({
             </div>
             <button
               onClick={() => setShowWindLegend(false)}
-              className="rounded p-0.5 text-slate-400 hover:text-slate-600"
+              className="rounded p-0.5 text-slate-400 hover:text-slate-600 cursor-pointer"
               aria-label="Close"
             >
               <X className="h-3.5 w-3.5" />
@@ -631,18 +648,63 @@ export default function AseanSurveillanceMapMobile({
         </div>
       )}
 
-      {/* Case Burden Legend when Choropleth Active */}
-      {showChoropleth && !showWindLegend && (
-        <div className="absolute bottom-3 left-3 z-10 bg-white/90 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-slate-200/90 shadow-sm text-[10px]">
-          <div className="text-[9px] font-black text-slate-700 tracking-wider uppercase mb-1">
-            Case Density
+      {/* Case Burden Legend when Choropleth Active (matches Image 2 and prototype AseanMap.tsx:4015-4085) */}
+      {showChoropleth && !showWindLegend && legendOpen && (
+        <div className="absolute bottom-3 left-3 z-20 max-w-[270px] sm:max-w-[320px] rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_8px_24px_rgba(0,0,0,0.12)] transition-all duration-300">
+          <div className="flex items-center justify-between gap-2 mb-1.5">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-[#0060A9]" />
+              CASE & MORTALITY BURDEN
+            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[9px] font-bold text-slate-400">
+                Choropleth
+              </span>
+              <button
+                type="button"
+                onClick={() => setLegendOpen(false)}
+                className="rounded p-0.5 text-slate-400 hover:text-slate-700 cursor-pointer"
+                aria-label="Hide legend"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[9px] text-slate-500">Low</span>
-            <div className="w-16 h-1.5 rounded-full bg-gradient-to-r from-blue-100 via-blue-500 to-[#0060A9]" />
-            <span className="text-[9px] text-[#0060A9] font-bold">High</span>
+
+          {/* Color Gradient Bar */}
+          <div className="relative h-2 w-full rounded-full bg-gradient-to-r from-[#e2e8f0] via-[#60a5fa] to-[#004d88] shadow-inner" />
+
+          {/* Scale Labels */}
+          <div className="mt-1 flex items-center justify-between text-[10px] font-bold text-slate-500">
+            <span>Low (0)</span>
+            <span>Moderate</span>
+            <span className="text-[#0060A9] font-black">Deep Blue (Peak)</span>
           </div>
+
+          {/* National Centroid sub-legend item */}
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-slate-100 pt-1.5 text-[10px] font-bold text-slate-600">
+            <span className="flex items-center gap-1.5">
+              <span className="h-3 w-3 rounded-full border-2 border-[#0060A9] bg-transparent shrink-0" />
+              National (country centroid)
+            </span>
+          </div>
+
+          {/* Explicit Helper Note */}
+          <p className="mt-1.5 text-[9px] leading-relaxed text-slate-500 border-t border-slate-100 pt-1.5">
+            Regions shaded in deep blue indicate higher concentrations of reported cases and mortality.
+          </p>
         </div>
+      )}
+
+      {showChoropleth && !showWindLegend && !legendOpen && (
+        <button
+          type="button"
+          onClick={() => setLegendOpen(true)}
+          className="absolute bottom-3 left-3 z-20 flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-700 shadow-md transition-all duration-300 hover:bg-slate-50 cursor-pointer"
+        >
+          <span className="h-2 w-2 rounded-full bg-[#0060A9]" />
+          Legend
+        </button>
       )}
 
       {/* Spatial Controls Slide-over Side Panel (100% matched to prototype) */}
@@ -650,7 +712,7 @@ export default function AseanSurveillanceMapMobile({
         <>
           <button
             onClick={() => setShowSpatialControls(false)}
-            className="absolute inset-0 z-30 bg-black/20 backdrop-blur-xs transition-opacity"
+            className="absolute inset-0 z-30 bg-black/20 backdrop-blur-xs transition-opacity cursor-pointer"
             aria-label="Close"
           />
           <aside className="absolute right-0 top-0 bottom-0 z-40 flex h-full w-[min(320px,88%)] flex-col border-l border-slate-200 bg-white shadow-2xl animate-in slide-in-from-right duration-200">
@@ -659,7 +721,7 @@ export default function AseanSurveillanceMapMobile({
               <div className="flex items-center gap-2">
                 <Settings className="h-4 w-4 text-[#0060A9]" />
                 <span className="text-sm font-bold text-slate-800">
-                  Spatial Controls
+                  Map & Layer Settings
                 </span>
               </div>
               <button

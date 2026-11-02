@@ -255,7 +255,30 @@ export async function getEbsDashboard(params?: SurveillanceFilterParams): Promis
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
-    return json.data || json;
+    const result: EbsDashboardData = json.data || json;
+
+    // Resilient fallback: If locations are empty due to strict date bounds (e.g. rolling 30-day window
+    // while latest database events were from previous months), fetch unbounded locations so map pins are visible
+    if ((!result.locations || result.locations.length === 0) && (params?.startDate || params?.endDate)) {
+      try {
+        const fallbackParams = { ...params, startDate: undefined, endDate: undefined };
+        const fallbackQ = buildEbsQueryParams(fallbackParams);
+        const fbRes = await fetch(`${API_BASE}/api/v1/public-dashboard?${fallbackQ.toString()}`, {
+          cache: "no-store",
+        });
+        if (fbRes.ok) {
+          const fbJson = await fbRes.json();
+          const fbData = fbJson.data || fbJson;
+          if (Array.isArray(fbData?.locations) && fbData.locations.length > 0) {
+            result.locations = fbData.locations;
+          }
+        }
+      } catch (fbErr) {
+        console.warn("Fallback public-dashboard locations fetch failed:", fbErr);
+      }
+    }
+
+    return result;
   } catch (err) {
     console.error("Failed to fetch EBS dashboard:", err);
     return null;

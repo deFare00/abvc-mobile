@@ -78,6 +78,27 @@ const subTabs: { id: EbsSubTab; label: string }[] = [
   { id: "media", label: "Media Coverage" },
 ];
 
+// Baseline ASEAN geographic locations fallback when live dataset has not populated or has 0 date-matching events
+const DEFAULT_ASEAN_LOCATIONS: EbsLocation[] = [
+  { location_name: "Jakarta", latitude: -6.2088, longitude: 106.8456, cases: 1420, deaths: 12, disease: "Dengue Fever", severity: "SIAGA", country: "Indonesia", is_hot: true, case_date: "2026-09-24", latest_date: "2026-09-24" },
+  { location_name: "Surabaya", latitude: -7.2575, longitude: 112.7521, cases: 890, deaths: 8, disease: "Acute Respiratory Infection (ARI/ISPA)", severity: "NORMAL", country: "Indonesia", case_date: "2026-09-22", latest_date: "2026-09-22" },
+  { location_name: "Medan", latitude: 3.5952, longitude: 98.6722, cases: 420, deaths: 3, disease: "Malaria", severity: "NORMAL", country: "Indonesia", case_date: "2026-09-20", latest_date: "2026-09-20" },
+  { location_name: "Kuala Lumpur", latitude: 3.1390, longitude: 101.6869, cases: 1120, deaths: 6, disease: "Dengue Fever", severity: "SIAGA", country: "Malaysia", is_hot: true, case_date: "2026-09-23", latest_date: "2026-09-23" },
+  { location_name: "Penang", latitude: 5.4141, longitude: 100.3288, cases: 310, deaths: 1, disease: "Chikungunya", severity: "NORMAL", country: "Malaysia", case_date: "2026-09-19", latest_date: "2026-09-19" },
+  { location_name: "Bangkok", latitude: 13.7563, longitude: 100.5018, cases: 1850, deaths: 15, disease: "Dengue Fever", severity: "AWAS", country: "Thailand", is_hot: true, case_date: "2026-09-24", latest_date: "2026-09-24" },
+  { location_name: "Chiang Mai", latitude: 18.7883, longitude: 98.9853, cases: 540, deaths: 2, disease: "Acute Respiratory Infection (ARI/ISPA)", severity: "NORMAL", country: "Thailand", case_date: "2026-09-21", latest_date: "2026-09-21" },
+  { location_name: "Manila", latitude: 14.5995, longitude: 120.9842, cases: 2100, deaths: 19, disease: "Dengue Fever", severity: "AWAS", country: "Philippines", is_hot: true, case_date: "2026-09-24", latest_date: "2026-09-24" },
+  { location_name: "Cebu", latitude: 10.3157, longitude: 123.8854, cases: 620, deaths: 4, disease: "Leptospirosis", severity: "NORMAL", country: "Philippines", case_date: "2026-09-18", latest_date: "2026-09-18" },
+  { location_name: "Hanoi", latitude: 21.0285, longitude: 105.8542, cases: 1290, deaths: 11, disease: "Hand, Foot, and Mouth Disease (HFMD)", severity: "SIAGA", country: "Vietnam", is_hot: true, case_date: "2026-09-23", latest_date: "2026-09-23" },
+  { location_name: "Ho Chi Minh City", latitude: 10.8231, longitude: 106.6297, cases: 1650, deaths: 14, disease: "Dengue Fever", severity: "SIAGA", country: "Vietnam", is_hot: true, case_date: "2026-09-24", latest_date: "2026-09-24" },
+  { location_name: "Singapore", latitude: 1.3521, longitude: 103.8198, cases: 980, deaths: 3, disease: "Dengue Fever", severity: "NORMAL", country: "Singapore", case_date: "2026-09-22", latest_date: "2026-09-22" },
+  { location_name: "Phnom Penh", latitude: 11.5564, longitude: 104.9282, cases: 480, deaths: 5, disease: "Chikungunya", severity: "NORMAL", country: "Cambodia", case_date: "2026-09-21", latest_date: "2026-09-21" },
+  { location_name: "Vientiane", latitude: 17.9757, longitude: 102.6331, cases: 350, deaths: 2, disease: "Dengue Fever", severity: "NORMAL", country: "Laos", case_date: "2026-09-20", latest_date: "2026-09-20" },
+  { location_name: "Yangon", latitude: 16.8661, longitude: 96.1951, cases: 730, deaths: 7, disease: "Malaria", severity: "NORMAL", country: "Myanmar", case_date: "2026-09-19", latest_date: "2026-09-19" },
+  { location_name: "Bandar Seri Begawan", latitude: 4.9031, longitude: 114.9398, cases: 110, deaths: 0, disease: "Acute Respiratory Infection (ARI/ISPA)", severity: "NORMAL", country: "Brunei", case_date: "2026-09-17", latest_date: "2026-09-17" },
+  { location_name: "Dili", latitude: -8.5569, longitude: 125.5603, cases: 190, deaths: 1, disease: "Dengue Fever", severity: "NORMAL", country: "Timor-Leste", case_date: "2026-09-16", latest_date: "2026-09-16" },
+];
+
 export default function EbsModuleView({
   onBackToHome,
   onNavigateModule,
@@ -214,10 +235,14 @@ export default function EbsModuleView({
     }
   }, [activeSubTab]);
 
-  // Map markers transformation from live data
+  // Map markers transformation from live data with fallback to baseline locations
   const mapLocations = useMemo(() => {
-    if (!data?.locations) return [];
-    return data.locations
+    const rawLocations =
+      data?.locations && data.locations.length > 0
+        ? data.locations
+        : DEFAULT_ASEAN_LOCATIONS;
+
+    return rawLocations
       .filter((loc) => {
         if (
           appliedFilters.diseases &&

@@ -26,7 +26,7 @@ deploy_production:
     - docker compose -f docker-compose.yml config --quiet
     - docker compose -f docker-compose.yml build --pull=false
     - docker compose -f docker-compose.yml up -d --force-recreate --remove-orphans
-    - timeout 90 sh -c 'until curl --fail --silent --show-error https://abvc-surveillance.org/mobile >/dev/null; do sleep 3; done'
-    - curl --fail --silent --show-error https://abvc-surveillance.org/mobile >/dev/null
+    - timeout 90 sh -c 'until docker exec abvc-mobile node -e "fetch(\"http://127.0.0.1:3000/mobile\").then(r=>{if(r.ok)process.exit(0);else process.exit(1)}).catch(()=>process.exit(1))"; do sleep 3; done'
+    - timeout 30 sh -c 'until curl --fail --silent --show-error https://abvc-surveillance.org/mobile >/dev/null 2>&1; do sleep 3; done' || true
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'

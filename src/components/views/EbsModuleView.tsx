@@ -254,6 +254,10 @@ export default function EbsModuleView({
         country: loc.country,
         province: loc.province,
         case_date: loc.case_date,
+        latest_date: loc.latest_date || loc.case_date,
+        is_national: loc.is_national,
+        geo_level: loc.geo_level,
+        sources: loc.sources,
         source_name: loc.sources?.[0]?.source_name || "NLP Extraction",
         source_url: loc.sources?.[0]?.url || loc.detail?.url,
         title: loc.detail?.title,
@@ -1361,6 +1365,16 @@ export default function EbsModuleView({
                   mode="ebs"
                   locations={mapLocations}
                   countries={mapCountries}
+                  selectedCountry={appliedFilters.country || null}
+                  boundaryScope={
+                    appliedFilters.region === "GLOBAL"
+                      ? "global"
+                      : appliedFilters.region === "ASEAN+3"
+                      ? "asean3"
+                      : "asean"
+                  }
+                  prototypeMode={true}
+                  ebsOnly={true}
                   heightClass="w-full h-full"
                 />
               ) : (

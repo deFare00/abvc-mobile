@@ -53,6 +53,9 @@ export interface EbsLocation {
   city?: string | null;
   case_date?: string;
   latest_date?: string;
+  is_national?: boolean;
+  geo_level?: "point" | "location" | "province" | "national" | "none" | null;
+  source_type?: string | null;
   sources?: Array<{
     source_name?: string;
     source_type?: string;

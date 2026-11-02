@@ -51,6 +51,8 @@ import {
   getMorbidityMortality,
   getSpatialHeatmap,
   computePreviousPeriod,
+  getDefaultSurveillanceDateRange,
+  formatLocalDateIso,
   placeCount,
   EbsDashboardData,
   EbsLocation,
@@ -94,13 +96,19 @@ export default function EbsModuleView({
   const [filterLoading, setFilterLoading] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
+  // Default 30-day surveillance date range up to today
+  const defaultDateRange = useMemo(() => getDefaultSurveillanceDateRange(30), []);
+
   // Applied Filter States
-  const [appliedFilters, setAppliedFilters] = useState<SurveillanceFilterParams>({
-    region: "ASEAN",
-    diseases: [],
-    countries: [],
-    startDate: "2026-09-30",
-    endDate: "2026-10-30",
+  const [appliedFilters, setAppliedFilters] = useState<SurveillanceFilterParams>(() => {
+    const def = getDefaultSurveillanceDateRange(30);
+    return {
+      region: "ASEAN",
+      diseases: [],
+      countries: [],
+      startDate: def.startDate,
+      endDate: def.endDate,
+    };
   });
 
   // Sub-view toggles
@@ -148,12 +156,13 @@ export default function EbsModuleView({
 
   // Fetch real data on mount
   useEffect(() => {
+    const def = getDefaultSurveillanceDateRange(30);
     loadAllEbsData({
       region: "ASEAN",
       diseases: [],
       countries: [],
-      startDate: "2026-09-30",
-      endDate: "2026-10-30",
+      startDate: def.startDate,
+      endDate: def.endDate,
     });
   }, [loadAllEbsData]);
 
@@ -163,12 +172,13 @@ export default function EbsModuleView({
   };
 
   const handleResetFilters = async () => {
+    const def = getDefaultSurveillanceDateRange(30);
     const defaults: SurveillanceFilterParams = {
       region: "ASEAN",
       diseases: [],
       countries: [],
-      startDate: "2026-09-30",
-      endDate: "2026-10-30",
+      startDate: def.startDate,
+      endDate: def.endDate,
     };
     setAppliedFilters(defaults);
     await loadAllEbsData(defaults);
@@ -263,7 +273,11 @@ export default function EbsModuleView({
 
   // Dynamic Date Range Badge Text
   const formatEnglishDateBadge = (start?: string, end?: string): string => {
-    if (!start || !end) return "Sep 30th, 2026 — Oct 30th, 2026";
+    if (!start || !end) {
+      const def = getDefaultSurveillanceDateRange(30);
+      start = def.startDate;
+      end = def.endDate;
+    }
     const s = new Date(start);
     const e = new Date(end);
     if (isNaN(s.getTime()) || isNaN(e.getTime())) return `${start} — ${end}`;
@@ -283,11 +297,11 @@ export default function EbsModuleView({
   }, [appliedFilters.startDate, appliedFilters.endDate]);
 
   const diffDays = useMemo(() => {
-    if (!appliedFilters.startDate || !appliedFilters.endDate) return 31;
+    if (!appliedFilters.startDate || !appliedFilters.endDate) return 30;
     const s = new Date(appliedFilters.startDate).getTime();
     const e = new Date(appliedFilters.endDate).getTime();
-    if (isNaN(s) || isNaN(e) || s > e) return 31;
-    return Math.max(1, Math.round((e - s) / (24 * 60 * 60 * 1000)) + 1);
+    if (isNaN(s) || isNaN(e) || s > e) return 30;
+    return Math.max(1, Math.round((e - s) / (24 * 60 * 60 * 1000)));
   }, [appliedFilters.startDate, appliedFilters.endDate]);
 
   // Previous period calculation matching NLP prototype
@@ -779,8 +793,9 @@ export default function EbsModuleView({
   // Dynamic Location Timeline for Surveillance Location Summary
   const dynamicLocationTimeline = useMemo(() => {
     const isDeaths = trendMetric === "deaths";
-    const start = new Date(appliedFilters.startDate || "2026-09-30");
-    const end = new Date(appliedFilters.endDate || "2026-10-30");
+    const defDates = getDefaultSurveillanceDateRange(30);
+    const start = new Date(appliedFilters.startDate || defDates.startDate);
+    const end = new Date(appliedFilters.endDate || defDates.endDate);
     const hasValidDates = !isNaN(start.getTime()) && !isNaN(end.getTime()) && start <= end;
 
     const dates: { iso: string; label: string }[] = [];
@@ -814,22 +829,22 @@ export default function EbsModuleView({
     const isFiltered = Boolean(
       (appliedFilters.diseases && appliedFilters.diseases.length > 0) ||
       (appliedFilters.countries && appliedFilters.countries.length > 0) ||
-      (appliedFilters.startDate && appliedFilters.startDate !== "2026-09-30") ||
-      (appliedFilters.endDate && appliedFilters.endDate !== "2026-10-30")
+      (appliedFilters.startDate && appliedFilters.startDate !== defDates.startDate) ||
+      (appliedFilters.endDate && appliedFilters.endDate !== defDates.endDate)
     );
 
     if (!isFiltered) {
       return locationSummaryTimeline;
     }
 
-    return dates.map((d) => {
+    return dates.map((d, dayIdx) => {
       const pt: Record<string, any> = { period: d.label };
       dynamicFilteredCountries.forEach((c) => {
         const liveVal = countryDayMap[c.name]?.[d.iso];
         if (liveVal !== undefined) {
           pt[c.name] = liveVal;
         } else {
-          const baseline = locationSummaryTimeline.find((b) => b.period === d.label);
+          const baseline = locationSummaryTimeline[dayIdx % locationSummaryTimeline.length];
           pt[c.name] = baseline ? ((baseline as any)[c.name] || 0) : 0;
         }
       });
@@ -1072,7 +1087,7 @@ export default function EbsModuleView({
       {/* ========================================================= */}
       {/* 2. NON-SCROLLABLE MAIN CONTENT AREA                       */}
       {/* ========================================================= */}
-      <main className="flex-1 flex flex-col justify-between p-3 sm:p-4 overflow-hidden space-y-2">
+      <main className="flex-1 flex flex-col p-2.5 sm:p-4 overflow-hidden space-y-2 min-h-0">
         {/* Quick Filter Pill for Non-Overview Subtabs */}
         {activeSubTab !== "overview" && (
           <div className="flex-shrink-0 bg-white border border-[#E2E8F0] rounded-xl px-2.5 py-1.5 flex items-center justify-between text-[10px] shadow-xs">
@@ -1109,7 +1124,7 @@ export default function EbsModuleView({
         {/* SUB-MODULE 1: OVERVIEW                                 */}
         {/* ======================================================= */}
         {activeSubTab === "overview" && (
-          <div className="w-full h-full flex flex-col justify-between space-y-2 animate-in fade-in duration-150 overflow-hidden">
+          <div className="w-full h-full flex flex-col space-y-2 animate-in fade-in duration-150 overflow-y-auto no-scrollbar pb-3">
             {/* Title Section */}
             <div className="bg-white rounded-2xl p-2.5 sm:p-3 border border-[#E2E8F0] shadow-xs space-y-1.5">
               <div>
@@ -1141,62 +1156,64 @@ export default function EbsModuleView({
               initialRegion={appliedFilters.region || "ASEAN"}
               initialDiseases={appliedFilters.diseases}
               initialCountries={appliedFilters.countries}
-              initialStartDate={appliedFilters.startDate || "2026-09-30"}
-              initialEndDate={appliedFilters.endDate || "2026-10-29"}
+              initialStartDate={appliedFilters.startDate || defaultDateRange.startDate}
+              initialEndDate={appliedFilters.endDate || defaultDateRange.endDate}
               onApply={handleApplyFilters}
               onReset={handleResetFilters}
               isLoading={filterLoading}
             />
 
             {/* 4 Summary Metric Cards (Synchronized with NLP Project Image 1) */}
-            <div className="grid grid-cols-2 gap-2 flex-1">
+            <div className="grid grid-cols-2 gap-2 flex-shrink-0">
               {/* Card 1: TOTAL LIVE CRAWLING ENGINE */}
-              <div className="bg-white rounded-2xl p-2.5 border-2 border-emerald-300 shadow-xs flex flex-col justify-between relative overflow-hidden">
+              <div className="bg-white rounded-2xl p-2.5 border-2 border-emerald-300 shadow-xs flex flex-col justify-between relative overflow-hidden min-w-0">
                 <div className="space-y-0.5">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-1">
                     <span className="text-[8.5px] font-black text-slate-800 uppercase leading-tight truncate">
-                      TOTAL LIVE CRAWLING ENGINE
+                      CRAWLING ENGINE
                     </span>
                     <span className="w-3.5 h-3.5 rounded-full bg-slate-100 text-slate-400 text-[8.5px] flex items-center justify-center font-bold flex-shrink-0">
                       i
                     </span>
                   </div>
-                  <div className="flex items-center gap-1 text-[7.5px] text-slate-500 font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                    <span>CRAWLER IDLE · last run 12:43 WIB</span>
+                  <div className="flex items-center gap-1 text-[7.5px] text-slate-500 font-medium truncate">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                    <span className="truncate">CRAWLER IDLE · last run 12:43</span>
                   </div>
                   <p className="text-[8px] text-slate-500 truncate pt-0.5">
                     Filter: <span className="font-semibold text-emerald-800">{filterSummaryText}</span>
                   </p>
-                  <div className="flex items-baseline gap-1.5 pt-0.5">
-                    <span className="text-xl sm:text-2xl font-black text-emerald-600 tracking-tight">
+                  <div className="flex flex-wrap items-baseline justify-between gap-1 pt-1">
+                    <span className="text-lg sm:text-2xl font-black text-emerald-600 tracking-tight">
                       {crawlingTotal.toLocaleString()}
                     </span>
-                    <span className="inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[8px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      ▲ {crawlingPct >= 0 ? `+${crawlingPct.toFixed(1)}%` : `${crawlingPct.toFixed(1)}%`} vs prev
+                    <span className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[7.5px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                      ▲ {crawlingPct >= 0 ? `+${crawlingPct.toFixed(1)}%` : `${crawlingPct.toFixed(1)}%`}
                     </span>
                   </div>
                 </div>
-                <div className="pt-1 border-t border-slate-100 mt-1 space-y-0.5">
+                <div className="pt-1.5 border-t border-slate-100 mt-1.5 space-y-1">
                   <div className="flex items-center justify-between text-[7.5px] text-slate-500">
-                    <span className="truncate max-w-[100px]">Previous: {previousPeriod.label}</span>
-                    <span className="font-bold text-slate-700">({prevCrawlingTotal.toLocaleString()})</span>
+                    <span className="font-medium text-slate-500">Prev Period</span>
+                    <span className="font-bold text-slate-800">{prevCrawlingTotal.toLocaleString()}</span>
                   </div>
-                  <div className="flex items-center justify-between text-[7.5px] text-slate-400 pt-0.5 border-t border-slate-50">
-                    <span className="flex items-center gap-1">
-                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
-                      Live · updated 4s ago
+                  <div className="flex items-center justify-between text-[7px] text-slate-400">
+                    <span className="truncate max-w-[105px]" title={previousPeriod.label}>
+                      {previousPeriod.label}
                     </span>
-                    <span>Last batch 12:36 WIB (+1)</span>
+                    <span className="flex items-center gap-1 font-semibold text-emerald-600 shrink-0">
+                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
+                      Live
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* Card 2: DETECTED CASES */}
-              <div className="bg-white rounded-2xl p-2.5 border border-slate-200 shadow-xs flex flex-col justify-between relative overflow-hidden">
+              <div className="bg-white rounded-2xl p-2.5 border border-slate-200 shadow-xs flex flex-col justify-between relative overflow-hidden min-w-0">
                 <div className="space-y-0.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[8.5px] font-black text-slate-800 uppercase leading-tight">
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[8.5px] font-black text-slate-800 uppercase leading-tight truncate">
                       DETECTED CASES
                     </span>
                     <span className="w-3.5 h-3.5 rounded-full bg-slate-100 text-slate-400 text-[8.5px] flex items-center justify-center font-bold flex-shrink-0">
@@ -1206,26 +1223,31 @@ export default function EbsModuleView({
                   <p className="text-[8px] text-slate-500 truncate pt-0.5">
                     Filter: <span className="font-semibold text-[#005792]">{filterSummaryText}</span>
                   </p>
-                  <div className="flex items-baseline gap-1.5 pt-1">
-                    <span className="text-xl sm:text-2xl font-black text-[#005792] tracking-tight">
+                  <div className="flex flex-wrap items-baseline justify-between gap-1 pt-1">
+                    <span className="text-lg sm:text-2xl font-black text-[#005792] tracking-tight">
                       {casesTotal.toLocaleString()}
                     </span>
-                    <span className="inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[8px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      ▲ {casesPct >= 0 ? `+${casesPct.toFixed(1)}%` : `${casesPct.toFixed(1)}%`} vs prev
+                    <span className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[7.5px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                      ▲ {casesPct >= 0 ? `+${casesPct.toFixed(1)}%` : `${casesPct.toFixed(1)}%`}
                     </span>
                   </div>
                 </div>
-                <div className="pt-1 border-t border-slate-100 mt-1 flex items-center justify-between text-[7.5px] text-slate-500">
-                  <span className="truncate max-w-[95px]">Previous: {previousPeriod.label}</span>
-                  <span className="font-bold text-slate-700">({prevCasesTotal.toLocaleString()})</span>
+                <div className="pt-1.5 border-t border-slate-100 mt-1.5 space-y-1">
+                  <div className="flex items-center justify-between text-[7.5px] text-slate-500">
+                    <span className="font-medium text-slate-500">Prev Period</span>
+                    <span className="font-bold text-slate-800">{prevCasesTotal.toLocaleString()}</span>
+                  </div>
+                  <div className="text-[7px] text-slate-400 truncate" title={previousPeriod.label}>
+                    {previousPeriod.label}
+                  </div>
                 </div>
               </div>
 
               {/* Card 3: DEATHS */}
-              <div className="bg-white rounded-2xl p-2.5 border border-slate-200 shadow-xs flex flex-col justify-between relative overflow-hidden">
+              <div className="bg-white rounded-2xl p-2.5 border border-slate-200 shadow-xs flex flex-col justify-between relative overflow-hidden min-w-0">
                 <div className="space-y-0.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[8.5px] font-black text-slate-800 uppercase leading-tight">
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[8.5px] font-black text-slate-800 uppercase leading-tight truncate">
                       DEATHS
                     </span>
                     <span className="w-3.5 h-3.5 rounded-full bg-slate-100 text-slate-400 text-[8.5px] flex items-center justify-center font-bold flex-shrink-0">
@@ -1235,26 +1257,31 @@ export default function EbsModuleView({
                   <p className="text-[8px] text-slate-500 truncate pt-0.5">
                     Filter: <span className="font-semibold text-rose-700">{filterSummaryText}</span>
                   </p>
-                  <div className="flex items-baseline gap-1.5 pt-1">
-                    <span className="text-xl sm:text-2xl font-black text-[#BA1A1A] tracking-tight">
+                  <div className="flex flex-wrap items-baseline justify-between gap-1 pt-1">
+                    <span className="text-lg sm:text-2xl font-black text-[#BA1A1A] tracking-tight">
                       {deathsTotal.toLocaleString()}
                     </span>
-                    <span className="inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[8px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      ▲ {deathsPct >= 0 ? `+${deathsPct.toFixed(1)}%` : `${deathsPct.toFixed(1)}%`} vs prev
+                    <span className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[7.5px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                      ▲ {deathsPct >= 0 ? `+${deathsPct.toFixed(1)}%` : `${deathsPct.toFixed(1)}%`}
                     </span>
                   </div>
                 </div>
-                <div className="pt-1 border-t border-slate-100 mt-1 flex items-center justify-between text-[7.5px] text-slate-500">
-                  <span className="truncate max-w-[95px]">Previous: {previousPeriod.label}</span>
-                  <span className="font-bold text-slate-700">({prevDeathsTotal.toLocaleString()})</span>
+                <div className="pt-1.5 border-t border-slate-100 mt-1.5 space-y-1">
+                  <div className="flex items-center justify-between text-[7.5px] text-slate-500">
+                    <span className="font-medium text-slate-500">Prev Period</span>
+                    <span className="font-bold text-slate-800">{prevDeathsTotal.toLocaleString()}</span>
+                  </div>
+                  <div className="text-[7px] text-slate-400 truncate" title={previousPeriod.label}>
+                    {previousPeriod.label}
+                  </div>
                 </div>
               </div>
 
               {/* Card 4: MAPPED LOCATIONS */}
-              <div className="bg-white rounded-2xl p-2.5 border border-slate-200 shadow-xs flex flex-col justify-between relative overflow-hidden">
+              <div className="bg-white rounded-2xl p-2.5 border border-slate-200 shadow-xs flex flex-col justify-between relative overflow-hidden min-w-0">
                 <div className="space-y-0.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[8.5px] font-black text-slate-800 uppercase leading-tight">
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[8.5px] font-black text-slate-800 uppercase leading-tight truncate">
                       MAPPED LOCATIONS
                     </span>
                     <span className="w-3.5 h-3.5 rounded-full bg-slate-100 text-slate-400 text-[8.5px] flex items-center justify-center font-bold flex-shrink-0">
@@ -1264,18 +1291,23 @@ export default function EbsModuleView({
                   <p className="text-[8px] text-slate-500 truncate pt-0.5">
                     Filter: <span className="font-semibold text-[#005792]">{filterSummaryText}</span>
                   </p>
-                  <div className="flex items-baseline gap-1.5 pt-1">
-                    <span className="text-xl sm:text-2xl font-black text-[#005792] tracking-tight">
+                  <div className="flex flex-wrap items-baseline justify-between gap-1 pt-1">
+                    <span className="text-lg sm:text-2xl font-black text-[#005792] tracking-tight">
                       {locationsTotal.toLocaleString()}
                     </span>
-                    <span className="inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[8px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      ▲ {locationsPct >= 0 ? `+${locationsPct.toFixed(1)}%` : `${locationsPct.toFixed(1)}%`} vs prev
+                    <span className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[7.5px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                      ▲ {locationsPct >= 0 ? `+${locationsPct.toFixed(1)}%` : `${locationsPct.toFixed(1)}%`}
                     </span>
                   </div>
                 </div>
-                <div className="pt-1 border-t border-slate-100 mt-1 flex items-center justify-between text-[7.5px] text-slate-500">
-                  <span className="truncate max-w-[95px]">Previous: {previousPeriod.label}</span>
-                  <span className="font-bold text-slate-700">({prevLocationsTotal.toLocaleString()})</span>
+                <div className="pt-1.5 border-t border-slate-100 mt-1.5 space-y-1">
+                  <div className="flex items-center justify-between text-[7.5px] text-slate-500">
+                    <span className="font-medium text-slate-500">Prev Period</span>
+                    <span className="font-bold text-slate-800">{prevLocationsTotal.toLocaleString()}</span>
+                  </div>
+                  <div className="text-[7px] text-slate-400 truncate" title={previousPeriod.label}>
+                    {previousPeriod.label}
+                  </div>
                 </div>
               </div>
             </div>
@@ -2070,8 +2102,8 @@ export default function EbsModuleView({
                 initialRegion={appliedFilters.region || "ASEAN"}
                 initialDiseases={appliedFilters.diseases}
                 initialCountries={appliedFilters.countries}
-                initialStartDate={appliedFilters.startDate || "2026-09-30"}
-                initialEndDate={appliedFilters.endDate || "2026-10-30"}
+                initialStartDate={appliedFilters.startDate || defaultDateRange.startDate}
+                initialEndDate={appliedFilters.endDate || defaultDateRange.endDate}
                 onApply={async (filters) => {
                   setIsFilterModalOpen(false);
                   await handleApplyFilters(filters);

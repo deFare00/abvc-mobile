@@ -385,9 +385,10 @@ export async function getAnalysisEvents(params?: {
   diseases?: string[];
 }): Promise<AnalysisEventsData | null> {
   try {
+    const defaultDates = getDefaultSurveillanceDateRange(30);
     const q = new URLSearchParams();
-    q.set("start", params?.start || "2026-09-29");
-    q.set("end", params?.end || "2026-10-29");
+    q.set("start", params?.start || defaultDates.startDate);
+    q.set("end", params?.end || defaultDates.endDate);
     q.set("scope", params?.scope || "ASEAN+3");
     if (params?.country) q.set("country", params.country);
     if (params?.diseases && params.diseases.length > 0) {
@@ -609,19 +610,40 @@ export function placeCount(locations?: Array<{ country?: string; location_name?:
   return set.size;
 }
 
+/**
+ * Format Date to YYYY-MM-DD based on local date
+ */
+export function formatLocalDateIso(date: Date = new Date()): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+/**
+ * Returns the default surveillance date range ending at current local date.
+ * Default 30 days span:
+ * E.g., for 2026-11-02:
+ * endDate: "2026-11-02"
+ * startDate: "2026-10-03" (30 days prior)
+ */
+export function getDefaultSurveillanceDateRange(daysSpan: number = 30): {
+  startDate: string;
+  endDate: string;
+} {
+  const now = new Date();
+  const endDate = formatLocalDateIso(now);
+  const startObj = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysSpan);
+  const startDate = formatLocalDateIso(startObj);
+  return { startDate, endDate };
+}
+
 // Helper: Compute previous period window and formatted labels matching NLP computePreviousPeriod
 export function computePreviousPeriod(startDateStr?: string | null, endDateStr?: string | null) {
   if (!startDateStr || !endDateStr) {
-    const now = new Date();
-    const curStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    const prevStart = new Date(curStart.getTime() - 30 * 24 * 60 * 60 * 1000);
-    const startIso = prevStart.toISOString().slice(0, 10);
-    const endIso = curStart.toISOString().slice(0, 10);
-    return {
-      startIso,
-      endIso,
-      label: `Aug 30th, 2026 — Sep 30th, 2026`,
-    };
+    const def = getDefaultSurveillanceDateRange(30);
+    startDateStr = def.startDate;
+    endDateStr = def.endDate;
   }
 
   const [sY, sM, sD] = startDateStr.split("-").map(Number);

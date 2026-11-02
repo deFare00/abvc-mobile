@@ -19,6 +19,8 @@ import {
   getMasterRegions,
   getMasterCountries,
   getDiseaseConcepts,
+  getDefaultSurveillanceDateRange,
+  formatLocalDateIso,
   MasterRegion,
   MasterCountry,
   DiseaseConcept,
@@ -76,7 +78,7 @@ function calculateDaysDifference(startStr: string, endStr: string): number {
     const s = new Date(startStr).getTime();
     const e = new Date(endStr).getTime();
     if (isNaN(s) || isNaN(e)) return 30;
-    return Math.max(1, Math.round((e - s) / (24 * 60 * 60 * 1000)) + 1);
+    return Math.max(1, Math.round((e - s) / (24 * 60 * 60 * 1000)));
   } catch {
     return 30;
   }
@@ -140,12 +142,14 @@ const DEFAULT_DISEASE_LIST = [
   "Zika",
 ];
 
+const defaultDateRange = getDefaultSurveillanceDateRange(30);
+
 export default function IntegratedEpidemiologicalFilterMobile({
   initialRegion = "ASEAN",
   initialDiseases = [],
   initialCountries = [],
-  initialStartDate = "2026-09-29",
-  initialEndDate = "2026-10-29",
+  initialStartDate = defaultDateRange.startDate,
+  initialEndDate = defaultDateRange.endDate,
   onApply,
   onReset,
   isLoading = false,
@@ -174,6 +178,24 @@ export default function IntegratedEpidemiologicalFilterMobile({
   // Local draft dates for date modal
   const [draftStartDate, setDraftStartDate] = useState<string>(initialStartDate);
   const [draftEndDate, setDraftEndDate] = useState<string>(initialEndDate);
+
+  // Sync props changes to state
+  useEffect(() => {
+    if (initialStartDate) {
+      setStartDate(initialStartDate);
+      setDraftStartDate(initialStartDate);
+    }
+    if (initialEndDate) {
+      setEndDate(initialEndDate);
+      setDraftEndDate(initialEndDate);
+    }
+  }, [initialStartDate, initialEndDate]);
+
+  useEffect(() => {
+    setSelectedRegion(initialRegion);
+    setSelectedDiseases(initialDiseases);
+    setSelectedCountries(initialCountries);
+  }, [initialRegion, initialDiseases, initialCountries]);
 
   // Load master data on mount
   useEffect(() => {
@@ -305,17 +327,15 @@ export default function IntegratedEpidemiologicalFilterMobile({
 
   // Date Presets Handler
   const handleSelectPreset = (days: number) => {
-    const end = new Date("2026-10-29");
-    const start = new Date(end.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
-    const endIso = end.toISOString().split("T")[0];
-    const startIso = start.toISOString().split("T")[0];
-    setDraftStartDate(startIso);
-    setDraftEndDate(endIso);
+    const range = getDefaultSurveillanceDateRange(days);
+    setDraftStartDate(range.startDate);
+    setDraftEndDate(range.endDate);
   };
 
   const handleSelectYtd = () => {
-    setDraftStartDate("2026-01-01");
-    setDraftEndDate("2026-10-29");
+    const now = new Date();
+    setDraftStartDate(`${now.getFullYear()}-01-01`);
+    setDraftEndDate(formatLocalDateIso(now));
   };
 
   // Handle Apply
@@ -331,13 +351,14 @@ export default function IntegratedEpidemiologicalFilterMobile({
 
   // Handle Reset
   const handleResetClick = () => {
+    const def = getDefaultSurveillanceDateRange(30);
     setSelectedRegion("ASEAN");
     setSelectedDiseases([]);
     setSelectedCountries([]);
-    setStartDate("2026-09-29");
-    setEndDate("2026-10-29");
-    setDraftStartDate("2026-09-29");
-    setDraftEndDate("2026-10-29");
+    setStartDate(def.startDate);
+    setEndDate(def.endDate);
+    setDraftStartDate(def.startDate);
+    setDraftEndDate(def.endDate);
 
     if (onReset) onReset();
     else {
@@ -345,8 +366,8 @@ export default function IntegratedEpidemiologicalFilterMobile({
         region: "ASEAN",
         diseases: [],
         countries: [],
-        startDate: "2026-09-29",
-        endDate: "2026-10-29",
+        startDate: def.startDate,
+        endDate: def.endDate,
       });
     }
   };
@@ -361,37 +382,40 @@ export default function IntegratedEpidemiologicalFilterMobile({
       {/* ========================================================= */}
       <div className="bg-white rounded-2xl p-2.5 sm:p-3 border border-[#E2E8F0] shadow-xs space-y-2 flex-shrink-0 select-none">
         {/* Header */}
-        <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
-          <div className="flex items-center gap-1.5 text-[#003396]">
-            <div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center text-[#003396]">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 pb-1.5 border-b border-slate-100">
+          <div className="flex items-center gap-1.5 text-[#003396] min-w-0">
+            <div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center text-[#003396] shrink-0">
               <Filter className="w-3.5 h-3.5" />
             </div>
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-900 block leading-tight">
-                Integrated Epidemiological Surveillance Filter
+            <div className="min-w-0">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-900 block leading-tight truncate">
+                Epidemiological Surveillance Filter
               </span>
-              <span className="text-[8.5px] text-[#737784] font-medium block">
-                Multi-select disease, region scope, location, and date range picker
+              <span className="text-[8px] text-[#737784] font-medium block truncate">
+                Multi-select disease, region scope, location, and date range
               </span>
             </div>
           </div>
-          <span className="text-[8.5px] font-extrabold text-[#003396] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200 shrink-0">
-            {formatShortDate(startDate)} — {formatDisplayDate(endDate)}
-          </span>
+          <div className="self-start sm:self-auto pl-7 sm:pl-0 shrink-0">
+            <span className="inline-flex items-center gap-1 text-[8.5px] font-extrabold text-[#003396] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
+              <Calendar className="w-2.5 h-2.5 text-[#003396]" />
+              {formatShortDate(startDate)} — {formatDisplayDate(endDate)}
+            </span>
+          </div>
         </div>
 
         {/* 4 Interactive Fields (2x2 Grid on Mobile) */}
         <div className="grid grid-cols-2 gap-2 text-[10px]">
           {/* FIELD 1: DISEASE (MULTI-SELECT) */}
-          <div className="flex flex-col gap-0.5">
+          <div className="flex flex-col gap-0.5 min-w-0">
             <label className="text-[8.5px] font-extrabold uppercase tracking-wider text-slate-700 flex items-center justify-between">
-              <span className="flex items-center gap-1">
-                <Bug className="w-3 h-3 text-red-500" />
-                Disease (Multi-Select)
+              <span className="flex items-center gap-1 truncate">
+                <Bug className="w-3 h-3 text-red-500 shrink-0" />
+                <span className="truncate">Disease</span>
               </span>
               {selectedDiseases.length > 0 && (
-                <span className="text-[8px] font-bold text-blue-700 bg-blue-50 px-1 rounded">
-                  {selectedDiseases.length} selected
+                <span className="text-[8px] font-bold text-blue-700 bg-blue-50 px-1 rounded shrink-0">
+                  {selectedDiseases.length}
                 </span>
               )}
             </label>
@@ -399,15 +423,15 @@ export default function IntegratedEpidemiologicalFilterMobile({
             <button
               type="button"
               onClick={() => setIsDiseaseModalOpen(true)}
-              className="w-full h-8.5 px-2.5 bg-[#f8f9fc] hover:bg-white focus:bg-white border border-[#E2E8F0] focus:border-[#003396] rounded-xl text-left flex items-center justify-between transition shadow-2xs cursor-pointer"
+              className="w-full h-9 px-2 bg-[#f8f9fc] hover:bg-white focus:bg-white border border-[#E2E8F0] focus:border-[#003396] rounded-xl text-left flex items-center justify-between transition shadow-2xs cursor-pointer min-w-0"
             >
-              <div className="min-w-0 pr-1">
+              <div className="min-w-0 pr-1 flex-1">
                 <span className="block font-bold text-slate-800 text-[10px] truncate leading-tight">
                   {selectedDiseases.length === 0
                     ? "All Diseases"
                     : selectedDiseases.length === 1
                     ? selectedDiseases[0]
-                    : `${selectedDiseases.length} Diseases Selected`}
+                    : `${selectedDiseases.length} Diseases`}
                 </span>
                 <span className="block text-[8px] text-[#737784] truncate">
                   {selectedDiseases.length === 0
@@ -434,25 +458,25 @@ export default function IntegratedEpidemiologicalFilterMobile({
           </div>
 
           {/* FIELD 2: REGION / SCOPE */}
-          <div className="flex flex-col gap-0.5">
+          <div className="flex flex-col gap-0.5 min-w-0">
             <label className="text-[8.5px] font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1">
-              <Globe2 className="w-3 h-3 text-[#003396]" />
-              Region / Scope
+              <Globe2 className="w-3 h-3 text-[#003396] shrink-0" />
+              <span className="truncate">Region / Scope</span>
             </label>
 
-            <div className="relative">
+            <div className="relative min-w-0">
               <select
                 value={selectedRegion}
                 onChange={(e) => handleRegionChange(e.target.value)}
-                className="w-full h-8.5 px-2.5 bg-[#f8f9fc] hover:bg-white focus:bg-white border border-[#E2E8F0] focus:border-[#003396] rounded-xl font-bold text-slate-800 text-[10px] appearance-none pr-7 shadow-2xs cursor-pointer outline-none transition"
+                className="w-full h-9 px-2 bg-[#f8f9fc] hover:bg-white focus:bg-white border border-[#E2E8F0] focus:border-[#003396] rounded-xl font-bold text-slate-800 text-[10px] appearance-none pr-6 shadow-2xs cursor-pointer outline-none transition truncate"
               >
                 <option value="ASEAN">ASEAN (11 States)</option>
                 <option value="ASEAN+3">ASEAN+3 (14 States)</option>
                 <option value="GLOBAL">Global (All Regions)</option>
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-2.5 pointer-events-none" />
             </div>
-            <span className="text-[8px] text-[#737784] px-1 truncate">
+            <span className="text-[8px] text-[#737784] px-0.5 truncate">
               {selectedRegion === "GLOBAL"
                 ? "Global surveillance"
                 : `${selectedRegionLabel} regional scope`}
@@ -460,15 +484,15 @@ export default function IntegratedEpidemiologicalFilterMobile({
           </div>
 
           {/* FIELD 3: LOCATION (MULTI-SELECT) */}
-          <div className="flex flex-col gap-0.5">
+          <div className="flex flex-col gap-0.5 min-w-0">
             <label className="text-[8.5px] font-extrabold uppercase tracking-wider text-slate-700 flex items-center justify-between">
-              <span className="flex items-center gap-1">
-                <MapPin className="w-3 h-3 text-emerald-600" />
-                Location (Multi-Select)
+              <span className="flex items-center gap-1 truncate">
+                <MapPin className="w-3 h-3 text-emerald-600 shrink-0" />
+                <span className="truncate">Location</span>
               </span>
               {selectedCountries.length > 0 && (
-                <span className="text-[8px] font-bold text-emerald-700 bg-emerald-50 px-1 rounded">
-                  {selectedCountries.length} selected
+                <span className="text-[8px] font-bold text-emerald-700 bg-emerald-50 px-1 rounded shrink-0">
+                  {selectedCountries.length}
                 </span>
               )}
             </label>
@@ -476,19 +500,19 @@ export default function IntegratedEpidemiologicalFilterMobile({
             <button
               type="button"
               onClick={() => setIsLocationModalOpen(true)}
-              className="w-full h-8.5 px-2.5 bg-[#f8f9fc] hover:bg-white focus:bg-white border border-[#E2E8F0] focus:border-[#003396] rounded-xl text-left flex items-center justify-between transition shadow-2xs cursor-pointer"
+              className="w-full h-9 px-2 bg-[#f8f9fc] hover:bg-white focus:bg-white border border-[#E2E8F0] focus:border-[#003396] rounded-xl text-left flex items-center justify-between transition shadow-2xs cursor-pointer min-w-0"
             >
-              <div className="min-w-0 pr-1">
+              <div className="min-w-0 pr-1 flex-1">
                 <span className="block font-bold text-slate-800 text-[10px] truncate leading-tight">
                   {selectedCountries.length === 0
-                    ? `All Countries (${selectedRegion})`
+                    ? `All Countries`
                     : selectedCountries.length === 1
                     ? selectedCountries[0]
-                    : `${selectedCountries.length} Countries Selected`}
+                    : `${selectedCountries.length} Countries`}
                 </span>
                 <span className="block text-[8px] text-[#737784] truncate">
                   {selectedCountries.length === 0
-                    ? `All countries in ${selectedRegion}`
+                    ? `Scope: ${selectedRegion}`
                     : selectedCountries.slice(0, 2).join(", ")}
                 </span>
               </div>
@@ -511,14 +535,14 @@ export default function IntegratedEpidemiologicalFilterMobile({
           </div>
 
           {/* FIELD 4: DATE RANGE (INTERACTIVE PICKER) */}
-          <div className="flex flex-col gap-0.5">
+          <div className="flex flex-col gap-0.5 min-w-0">
             <label className="text-[8.5px] font-extrabold uppercase tracking-wider text-slate-700 flex items-center justify-between">
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1 truncate">
                 <Calendar className="w-3 h-3 text-[#003396]" />
-                Date Range
+                <span className="truncate">Date Range</span>
               </span>
-              <span className="text-[8px] font-bold text-[#003396] bg-blue-50 px-1 rounded">
-                {totalDays} days
+              <span className="text-[8px] font-bold text-[#003396] bg-blue-50 px-1 rounded shrink-0">
+                {totalDays}d
               </span>
             </label>
 
@@ -529,14 +553,14 @@ export default function IntegratedEpidemiologicalFilterMobile({
                 setDraftEndDate(endDate);
                 setIsDateModalOpen(true);
               }}
-              className="w-full h-8.5 px-2.5 bg-[#f8f9fc] hover:bg-white focus:bg-white border border-[#E2E8F0] focus:border-[#003396] rounded-xl text-left flex items-center justify-between transition shadow-2xs cursor-pointer"
+              className="w-full h-9 px-2 bg-[#f8f9fc] hover:bg-white focus:bg-white border border-[#E2E8F0] focus:border-[#003396] rounded-xl text-left flex items-center justify-between transition shadow-2xs cursor-pointer min-w-0"
             >
-              <div className="min-w-0 pr-1">
+              <div className="min-w-0 pr-1 flex-1">
                 <span className="block font-bold text-slate-800 text-[9.5px] truncate leading-tight">
                   {formatShortDate(startDate)} — {formatDisplayDate(endDate)}
                 </span>
                 <span className="block text-[8px] text-[#737784] truncate">
-                  {totalDays} days span • Tap to change
+                  {totalDays} days span • Change
                 </span>
               </div>
               <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -545,23 +569,24 @@ export default function IntegratedEpidemiologicalFilterMobile({
         </div>
 
         {/* Action Buttons: APPLY and RESET */}
-        <div className="flex items-center gap-1.5 pt-1">
+        <div className="flex items-center gap-1.5 pt-0.5">
           <button
             type="button"
             onClick={handleApplyClick}
             disabled={isLoading}
-            className="flex-1 h-8 rounded-xl bg-[#003396] hover:bg-[#002266] active:scale-[0.99] text-white font-black text-[10px] tracking-wider uppercase flex items-center justify-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+            className="flex-1 h-9 rounded-xl bg-[#003396] hover:bg-[#002266] active:scale-[0.99] text-white font-black text-[10px] tracking-wider uppercase flex items-center justify-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
           >
             <Check className="w-3.5 h-3.5 stroke-[3]" />
-            <span>{isLoading ? "APPLYING..." : "APPLY"}</span>
+            <span>{isLoading ? "APPLYING..." : "APPLY FILTERS"}</span>
           </button>
           <button
             type="button"
             onClick={handleResetClick}
-            className="w-8 h-8 rounded-xl bg-[#f8f9fc] hover:bg-[#eceef0] active:scale-95 border border-[#E2E8F0] text-[#737784] flex items-center justify-center transition shadow-2xs cursor-pointer"
+            className="h-9 px-3 rounded-xl bg-[#f8f9fc] hover:bg-[#eceef0] active:scale-95 border border-[#E2E8F0] text-[#737784] hover:text-[#003396] flex items-center justify-center gap-1 transition shadow-2xs cursor-pointer text-[10px] font-bold"
             title="Reset Filters"
           >
             <RotateCcw className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Reset</span>
           </button>
         </div>
       </div>
@@ -872,12 +897,12 @@ export default function IntegratedEpidemiologicalFilterMobile({
                   type="button"
                   onClick={handleSelectYtd}
                   className={`py-1.5 px-2 rounded-xl border font-bold transition cursor-pointer text-center col-span-2 ${
-                    draftStartDate === "2026-01-01"
+                    draftStartDate === `${new Date().getFullYear()}-01-01` && draftEndDate === formatLocalDateIso(new Date())
                       ? "bg-blue-50 border-blue-300 text-[#003396]"
                       : "bg-slate-50 hover:bg-blue-50/50 border-slate-200 text-slate-700"
                   }`}
                 >
-                  Year to Date (2026)
+                  Year to Date (${new Date().getFullYear()})
                 </button>
               </div>
             </div>
